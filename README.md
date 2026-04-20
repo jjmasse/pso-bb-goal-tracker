@@ -10,7 +10,7 @@ A single-file, offline-first goal tracker for **Phantasy Star Online Blue Burst*
 
 The demo runs entirely in your browser. Your data stays in your browser's `localStorage` — nothing is sent anywhere, and no one else can see your progress. Use the demo to kick the tires. For real long-term tracking, fork or download and run `index.html` locally — that way your log survives a repo move and isn't tied to the hosted URL.
 
-> Replace `YOUR-GITHUB-USERNAME` above after you fork. See [hosting your own copy](#hosting-your-own-copy) below.
+> **Forking?** If you publish your own GitHub Pages demo, change the demo link above to `https://YOUR-USERNAME.github.io/YOUR-REPO-NAME/`. See [hosting your own copy](#hosting-your-own-copy) below.
 
 ## What it is
 
