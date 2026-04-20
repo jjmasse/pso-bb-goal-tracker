@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PSOBB Journey Log</title>
+<style>
+  :root {
+    --bg-0: #060914;
+    --bg-1: #0c1428;
+    --bg-2: #142042;
+    --line: #1f2c4f;
+    --text: #d6e0ff;
+    --text-dim: #8b97c1;
+    --accent: #58e6ff;
+    --accent-2: #ffb454;
+    --legendary: #c9a4ff;
+    --core: #58e6ff;
+    --stretch: #6ee7a7;
+    --done: #6ee7a7;
+    --pending: #3a4670;
+    --danger: #ff8a8a;
+    --kind-progression: #58e6ff;
+    --kind-challenge: #ff8a8a;
+    --kind-seasonal: #ffb454;
+    --kind-collection: #c9a4ff;
+    --kind-social: #6ee7a7;
+    --kind-performance: #ff8ae8;
+    --kind-meta: #c6f5dd;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg-0); color: var(--text); font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  body {
+    background:
+      radial-gradient(circle at 20% 10%, rgba(88,230,255,0.08), transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(201,164,255,0.08), transparent 40%),
+      var(--bg-0);
+    min-height: 100vh;
+  }
+  header {
+    padding: 24px 32px 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 24px;
+    letter-spacing: 0.5px;
+    background: linear-gradient(90deg, var(--accent), var(--legendary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .subtitle { color: var(--text-dim); font-size: 13px; margin-top: 4px; }
+  .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  button, select {
+    background: var(--bg-2); color: var(--text); border: 1px solid var(--line);
+    padding: 8px 14px; border-radius: 6px; cursor: pointer;
+    font-size: 13px; font-family: inherit; transition: all 0.15s;
+  }
+  button:hover, select:hover { border-color: var(--accent); color: var(--accent); }
+  button.primary { background: var(--accent); color: var(--bg-0); border-color: var(--accent); font-weight: 600; }
+  button.primary:hover { background: #7fefff; color: var(--bg-0); }
+  button.danger { color: var(--danger); }
+  button.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+  .context-bar {
+    display: flex; gap: 12px; align-items: center;
+    padding: 14px 32px; background: var(--bg-1);
+    border-bottom: 1px solid var(--line); flex-wrap: wrap;
+  }
+  .context-bar label { color: var(--text-dim); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .context-bar select { min-width: 180px; }
+  .context-bar .grow { flex: 1; }
+
+  .filter-bar {
+    padding: 10px 32px; background: var(--bg-0);
+    border-bottom: 1px solid var(--line);
+    display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+  }
+  .filter-bar .label { color: var(--text-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-right: 4px; }
+  .chip {
+    padding: 5px 11px; border-radius: 20px; font-size: 12px;
+    border: 1px solid var(--line); background: var(--bg-1);
+    cursor: pointer; color: var(--text-dim); transition: all 0.15s;
+    user-select: none;
+  }
+  .chip.on { color: var(--text); border-color: currentColor; background: var(--bg-2); }
+  .chip[data-kind="progression"].on { color: var(--kind-progression); }
+  .chip[data-kind="challenge"].on    { color: var(--kind-challenge); }
+  .chip[data-kind="seasonal"].on     { color: var(--kind-seasonal); }
+  .chip[data-kind="collection"].on   { color: var(--kind-collection); }
+  .chip[data-kind="social"].on       { color: var(--kind-social); }
+  .chip[data-kind="performance"].on  { color: var(--kind-performance); }
+  .chip[data-kind="meta"].on         { color: var(--kind-meta); }
+  .chip:hover { color: var(--text); }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; padding: 24px 32px; }
+  .stat-card { background: var(--bg-1); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+  .stat-card .label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .stat-card .value { font-size: 28px; font-weight: 600; margin-top: 4px; }
+  .stat-card .bar { height: 4px; background: var(--pending); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+  .stat-card .bar-fill { height: 100%; background: var(--done); transition: width 0.4s; }
+  .stat-card.core .value { color: var(--core); }
+  .stat-card.stretch .value { color: var(--stretch); }
+  .stat-card.legendary .value { color: var(--legendary); }
+  .stat-card.total .value { color: var(--accent-2); }
+
+  .journey-feed {
+    margin: 0 32px 24px; padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(88,230,255,0.08), rgba(201,164,255,0.05));
+    border: 1px solid var(--line); border-radius: 8px;
+  }
+  .journey-feed h3 { margin: 0 0 12px; font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); }
+  .feed-item { padding: 6px 0; font-size: 14px; border-bottom: 1px dashed var(--line); }
+  .feed-item:last-child { border-bottom: none; }
+  .feed-date { color: var(--text-dim); font-size: 12px; margin-right: 10px; font-variant-numeric: tabular-nums; }
+  .feed-tier {
+    display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 3px;
+    margin-right: 8px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
+  }
+  .feed-tier.core { background: rgba(88,230,255,0.15); color: var(--core); }
+  .feed-tier.stretch { background: rgba(110,231,167,0.15); color: var(--stretch); }
+  .feed-tier.legendary { background: rgba(201,164,255,0.15); color: var(--legendary); }
+  .feed-ctx { font-size: 11px; color: var(--text-dim); margin-left: 8px; }
+  .feed-empty { color: var(--text-dim); font-style: italic; font-size: 13px; }
+
+  .tabs { display: flex; gap: 4px; padding: 0 32px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .tab {
+    padding: 12px 18px; cursor: pointer; border: none; background: transparent;
+    color: var(--text-dim); font-size: 14px; border-bottom: 2px solid transparent;
+    border-radius: 0; font-weight: 500;
+  }
+  .tab:hover { color: var(--text); border-bottom-color: var(--line); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab .count { font-size: 11px; color: var(--text-dim); margin-left: 6px; }
+  .tab.active .count { color: var(--accent); }
+
+  .tier-content { padding: 24px 32px 60px; }
+  .tier-intro { color: var(--text-dim); font-size: 13px; font-style: italic; margin: 0 0 20px; max-width: 760px; }
+  .empty-state {
+    padding: 40px 20px; text-align: center; background: var(--bg-1);
+    border: 1px dashed var(--line); border-radius: 8px; color: var(--text-dim);
+  }
+  .empty-state h3 { color: var(--text); margin: 0 0 8px; }
+  .category-section { margin-bottom: 28px; }
+  .category-header { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim); margin-bottom: 12px; }
+  .goal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+  .goal-card {
+    background: var(--bg-1); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px 16px; transition: all 0.15s; position: relative;
+  }
+  .goal-card:hover { border-color: var(--text-dim); }
+  .goal-card.achieved { background: linear-gradient(135deg, rgba(110,231,167,0.08), rgba(88,230,255,0.05)); border-color: rgba(110,231,167,0.3); }
+  .goal-card.season-past { opacity: 0.55; }
+  .goal-card.season-active { border-color: var(--kind-seasonal); box-shadow: 0 0 18px rgba(255,180,84,0.15); }
+  .goal-header { display: flex; align-items: flex-start; gap: 10px; }
+  .goal-check {
+    flex-shrink: 0; width: 22px; height: 22px; border: 2px solid var(--pending);
+    border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; margin-top: 2px;
+  }
+  .goal-check:hover { border-color: var(--accent); }
+  .goal-card.achieved .goal-check { background: var(--done); border-color: var(--done); }
+  .goal-card.achieved .goal-check::after { content: "✓"; color: var(--bg-0); font-weight: 700; font-size: 14px; }
+  .goal-body { flex: 1; min-width: 0; }
+  .goal-title { font-weight: 600; font-size: 14px; line-height: 1.3; }
+  .goal-card.achieved .goal-title { color: var(--done); }
+  .goal-desc { font-size: 12px; color: var(--text-dim); margin-top: 4px; line-height: 1.5; }
+  .goal-tags { font-size: 10px; margin-top: 6px; display: flex; gap: 4px; flex-wrap: wrap; }
+  .goal-tags span { display: inline-block; padding: 1px 6px; border-radius: 3px; background: var(--bg-2); color: var(--text-dim); }
+  .goal-tags span.kind-progression { color: var(--kind-progression); }
+  .goal-tags span.kind-challenge { color: var(--kind-challenge); }
+  .goal-tags span.kind-seasonal { color: var(--kind-seasonal); }
+  .goal-tags span.kind-collection { color: var(--kind-collection); }
+  .goal-tags span.kind-social { color: var(--kind-social); }
+  .goal-tags span.kind-performance { color: var(--kind-performance); }
+  .goal-tags span.kind-meta { color: var(--kind-meta); }
+  .goal-tags span.status-active { color: var(--kind-seasonal); background: rgba(255,180,84,0.15); font-weight: 700; }
+  .goal-tags span.status-upcoming { color: var(--accent); background: rgba(88,230,255,0.12); }
+  .goal-tags span.status-past { color: var(--text-dim); font-style: italic; }
+  .goal-stats {
+    margin-top: 8px; padding: 6px 10px; background: var(--bg-0); border-radius: 4px;
+    font-size: 12px; color: var(--text-dim); display: flex; gap: 14px; flex-wrap: wrap;
+  }
+  .goal-stats strong { color: var(--text); font-variant-numeric: tabular-nums; }
+  .goal-meta { font-size: 11px; color: var(--text-dim); margin-top: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .goal-note {
+    margin-top: 8px; font-size: 12px; color: var(--text);
+    background: rgba(0,0,0,0.25); border-left: 2px solid var(--accent);
+    padding: 6px 10px; border-radius: 0 4px 4px 0; font-style: italic;
+  }
+  .goal-actions { font-size: 11px; color: var(--text-dim); cursor: pointer; }
+  .goal-actions:hover { color: var(--accent); }
+  .goal-edit { margin-top: 10px; display: none; }
+  .goal-edit.open { display: block; }
+  .goal-edit input, .goal-edit textarea {
+    width: 100%; background: var(--bg-0); border: 1px solid var(--line); color: var(--text);
+    padding: 6px 8px; border-radius: 4px; font-family: inherit; font-size: 12px; margin-bottom: 6px;
+  }
+  .goal-edit textarea { resize: vertical; min-height: 50px; }
+  .goal-edit .edit-actions { display: flex; gap: 6px; }
+  .goal-edit button { font-size: 11px; padding: 4px 10px; }
+  .custom-badge { font-size: 9px; background: var(--bg-2); padding: 2px 5px; border-radius: 3px; color: var(--text-dim); margin-left: 6px; vertical-align: middle; }
+  .log-attempt-btn { font-size: 11px; padding: 5px 10px; background: var(--bg-2); border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; cursor: pointer; }
+  .log-attempt-btn:hover { background: var(--accent); color: var(--bg-0); }
+
+  /* How-to / strategy panel */
+  .goal-howto-toggle {
+    font-size: 11px; color: var(--accent); cursor: pointer; margin-top: 8px;
+    display: inline-block; user-select: none;
+  }
+  .goal-howto-toggle:hover { text-decoration: underline; }
+  .goal-howto-toggle::before { content: "How to \203A"; }
+  .goal-howto-toggle.open::before { content: "How to \2228"; }
+  .goal-howto {
+    margin-top: 8px; padding: 10px 12px;
+    background: rgba(88,230,255,0.05); border-left: 2px solid var(--accent);
+    border-radius: 0 4px 4px 0; font-size: 12px; display: none;
+    color: var(--text);
+  }
+  .goal-howto.open { display: block; }
+  .goal-howto-section { margin-bottom: 10px; }
+  .goal-howto-section:last-child { margin-bottom: 0; }
+  .goal-howto-label {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1.3px;
+    color: var(--text-dim); margin-bottom: 4px; font-weight: 600;
+  }
+  .goal-howto-strategy { line-height: 1.5; }
+  .goal-howto a { color: var(--accent); text-decoration: none; }
+  .goal-howto a:hover { text-decoration: underline; }
+  .prereq-list { list-style: none; padding: 0; margin: 0; }
+  .prereq-list li {
+    padding: 3px 0; display: flex; align-items: center; gap: 8px;
+  }
+  .prereq-check {
+    width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 3px; font-size: 10px; font-weight: 700; flex-shrink: 0; line-height: 1;
+  }
+  .prereq-check.done { background: var(--done); color: var(--bg-0); }
+  .prereq-check.pending { background: var(--bg-2); color: var(--text-dim); border: 1px solid var(--line); }
+  .prereq-link { cursor: pointer; font-size: 12px; color: var(--text); }
+  .prereq-link:hover { color: var(--accent); text-decoration: underline; }
+  .prereq-link.done { color: var(--done); }
+  .goal-flash {
+    animation: goal-flash-anim 1500ms ease-out;
+  }
+  @keyframes goal-flash-anim {
+    0%   { box-shadow: 0 0 0 rgba(88,230,255,0); }
+    30%  { box-shadow: 0 0 24px rgba(88,230,255,0.55); }
+    100% { box-shadow: 0 0 0 rgba(88,230,255,0); }
+  }
+
+  .add-goal { margin-top: 16px; padding: 16px; background: var(--bg-1); border: 1px dashed var(--line); border-radius: 8px; }
+  .add-goal h4 { margin: 0 0 10px; font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .add-goal-row { display: grid; grid-template-columns: 1fr 1fr 1fr 2fr auto; gap: 8px; align-items: stretch; }
+  .add-goal input, .add-goal select {
+    background: var(--bg-0); border: 1px solid var(--line); color: var(--text);
+    padding: 8px 10px; border-radius: 4px; font-family: inherit; font-size: 13px;
+  }
+  .add-goal input:focus, .add-goal select:focus { outline: none; border-color: var(--accent); }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--bg-1); border: 1px solid var(--line); border-radius: 10px;
+    padding: 24px; max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto;
+  }
+  .modal h2 { margin: 0 0 16px; font-size: 18px; }
+  .modal-field { margin-bottom: 14px; }
+  .modal-field label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 6px; }
+  .modal-field input, .modal-field select, .modal-field textarea {
+    width: 100%; background: var(--bg-0); border: 1px solid var(--line); color: var(--text);
+    padding: 10px 12px; border-radius: 6px; font-family: inherit; font-size: 14px;
+  }
+  .modal-field textarea { resize: vertical; min-height: 60px; }
+  .modal-field .helper { font-size: 11px; color: var(--text-dim); margin-top: 4px; font-style: italic; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .char-list { margin: 0; padding: 0; list-style: none; }
+  .char-list li {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 12px; background: var(--bg-0); border: 1px solid var(--line);
+    border-radius: 6px; margin-bottom: 8px;
+  }
+  .char-list .meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+  footer { text-align: center; padding: 30px; color: var(--text-dim); font-size: 12px; border-top: 1px solid var(--line); }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* ====== PSO drop effect ====== */
+  .pso-particle {
+    position: fixed; width: 7px; height: 7px; border-radius: 50%;
+    pointer-events: none; z-index: 200; will-change: transform, opacity;
+    animation: pso-particle-burst 800ms cubic-bezier(.2,.7,.3,1) forwards;
+  }
+  @keyframes pso-particle-burst {
+    0%   { transform: translate(0, 0) scale(0.4); opacity: 0; }
+    15%  { opacity: 1; transform: translate(calc(var(--dx) * 0.25), calc(var(--dy) * 0.25)) scale(1.3); }
+    100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+  }
+  .pso-ring {
+    position: fixed; width: 30px; height: 30px; border-radius: 50%;
+    pointer-events: none; z-index: 199; border: 3px solid transparent;
+    background:
+      linear-gradient(var(--bg-0), var(--bg-0)) padding-box,
+      conic-gradient(from 0deg, #ffb454, #ff8ae8, #c9a4ff, #58e6ff, #6ee7a7, #ffb454) border-box;
+    background-clip: padding-box, border-box;
+    animation: pso-ring-expand 900ms ease-out forwards;
+  }
+  @keyframes pso-ring-expand {
+    0%   { transform: scale(0.3); opacity: 0.9; filter: blur(0px); }
+    100% { transform: scale(8); opacity: 0; filter: blur(2px); }
+  }
+  .pso-rare-text {
+    position: fixed; font-weight: 800; font-size: 17px; letter-spacing: 5px;
+    pointer-events: none; z-index: 201;
+    background: linear-gradient(90deg, #ffb454, #ff8ae8, #c9a4ff, #58e6ff, #6ee7a7, #ffb454);
+    background-size: 200% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 0 24px rgba(255, 180, 84, 0.4);
+    animation: pso-rare-text 1500ms ease-out forwards, pso-rare-shimmer 1500ms linear forwards;
+    white-space: nowrap;
+  }
+  @keyframes pso-rare-text {
+    0%   { opacity: 0; transform: translate(-50%, 0) scale(0.5); }
+    20%  { opacity: 1; transform: translate(-50%, -24px) scale(1.25); }
+    70%  { opacity: 1; transform: translate(-50%, -48px) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -80px) scale(1); }
+  }
+  @keyframes pso-rare-shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+  .goal-card.just-achieved-core     { animation: pso-card-pulse-core 800ms ease-out; }
+  .goal-card.just-achieved-stretch  { animation: pso-card-pulse-stretch 800ms ease-out; }
+  .goal-card.just-achieved-legendary{ animation: pso-card-pulse-legendary 1100ms ease-out; }
+  @keyframes pso-card-pulse-core {
+    0% { box-shadow: 0 0 0 rgba(88,230,255,0); }
+    30% { box-shadow: 0 0 28px rgba(88,230,255,0.6); }
+    100% { box-shadow: 0 0 0 rgba(88,230,255,0); }
+  }
+  @keyframes pso-card-pulse-stretch {
+    0% { box-shadow: 0 0 0 rgba(110,231,167,0); }
+    30% { box-shadow: 0 0 30px rgba(110,231,167,0.65); }
+    100% { box-shadow: 0 0 0 rgba(110,231,167,0); }
+  }
+  @keyframes pso-card-pulse-legendary {
+    0%  { box-shadow: 0 0 0 rgba(201,164,255,0); }
+    25% { box-shadow: 0 0 42px rgba(255,180,84,0.6), 0 0 22px rgba(201,164,255,0.7); }
+    60% { box-shadow: 0 0 34px rgba(255,138,232,0.5), 0 0 22px rgba(88,230,255,0.6); }
+    100%{ box-shadow: 0 0 0 rgba(201,164,255,0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pso-particle, .pso-ring, .pso-rare-text { display: none; }
+    .goal-card.just-achieved-core,
+    .goal-card.just-achieved-stretch,
+    .goal-card.just-achieved-legendary { animation: none; }
+  }
+
+  @media (max-width: 720px) {
+    header, .context-bar, .filter-bar, .stats, .tabs, .tier-content, .journey-feed { padding-left: 16px; padding-right: 16px; }
+    .journey-feed { margin-left: 8px; margin-right: 8px; }
+    .add-goal-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>PSOBB Journey Log</h1>
+    <div class="subtitle">Multi-character goals &amp; milestones for Phantasy Star Online Blue Burst</div>
+  </div>
+  <div class="header-actions">
+    <button onclick="openCharacterManager()">Manage Characters</button>
+    <button id="soundBtn" onclick="toggleSound()">Sound: off</button>
+    <button onclick="exportData()">Export</button>
+    <button onclick="document.getElementById('importFile').click()">Import</button>
+    <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
+    <button class="danger" onclick="resetAll()">Reset</button>
+  </div>
+</header>
+
+<div class="context-bar">
+  <label>Viewing</label>
+  <select id="contextSelect" onchange="setContext(this.value)"></select>
+  <div class="grow"></div>
+  <label>Server</label>
+  <select id="serverSelect" onchange="setServer(this.value)">
+    <option value="ephinea">Ephinea</option>
+    <option value="any">All servers</option>
+  </select>
+</div>
+
+<div class="filter-bar" id="filterBar"></div>
+
+<div class="stats" id="stats"></div>
+
+<div class="journey-feed">
+  <h3>Recent Journey Entries</h3>
+  <div id="feed"></div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div class="tier-content" id="tierContent"></div>
+
+<!-- Character Manager Modal -->
+<div class="modal-backdrop" id="charModal">
+  <div class="modal">
+    <h2>Characters</h2>
+    <ul class="char-list" id="charList"></ul>
+    <h3 style="font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-top:20px;">Add a character</h3>
+    <div class="modal-field">
+      <label>Name</label>
+      <input type="text" id="newCharName" placeholder="e.g. Jackie">
+    </div>
+    <div class="modal-field">
+      <label>Class</label>
+      <select id="newCharClass"></select>
+    </div>
+    <div class="modal-field">
+      <label>Section ID</label>
+      <select id="newCharSectionId"></select>
+    </div>
+    <div class="modal-actions">
+      <button onclick="closeCharacterManager()">Close</button>
+      <button class="primary" onclick="addCharacter()">Add Character</button>
+    </div>
+  </div>
+</div>
+
+<!-- Log Attempt Modal -->
+<div class="modal-backdrop" id="logModal">
+  <div class="modal">
+    <h2 id="logModalTitle">Log an attempt</h2>
+    <div class="modal-field">
+      <label>Date</label>
+      <input type="date" id="logDate">
+    </div>
+    <div class="modal-field" id="logTimeField">
+      <label>Time (mm:ss)</label>
+      <input type="text" id="logTime" placeholder="e.g. 14:32">
+      <div class="helper">Best time auto-updates if this is faster than your current best.</div>
+    </div>
+    <div class="modal-field">
+      <label>Note (optional)</label>
+      <textarea id="logNote" placeholder="Party, build, notable moment..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button onclick="closeLogModal()">Cancel</button>
+      <button class="primary" onclick="saveAttempt()">Log Attempt</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Single-file local tracker. State saved in your browser's <code>localStorage</code>. Export regularly to back up.
+  <br>Open source — contribute a new goal on GitHub.
+</footer>
+
+<script>
+// ============================================================
+// REFERENCE DATA
+// ============================================================
+const CLASSES = [
+  'HUmar', 'HUnewearl', 'HUcast', 'HUcaseal',
+  'RAmar', 'RAmarl',    'RAcast', 'RAcaseal',
+  'FOmar', 'FOmarl',    'FOnewm', 'FOnewearl'
+];
+const SECTION_IDS = ['Viridia','Greenill','Skyly','Bluefull','Purplenum','Pinkal','Redria','Oran','Yellowboze','Whitill'];
+const HUNTERS = ['HUmar','HUnewearl','HUcast','HUcaseal'];
+const RANGERS = ['RAmar','RAmarl','RAcast','RAcaseal'];
+const FORCES  = ['FOmar','FOmarl','FOnewm','FOnewearl'];
+const TECH_CAPABLE = [...FORCES, 'HUmar','HUnewearl','RAmar','RAmarl'];
+
+const KINDS = ['progression', 'challenge', 'seasonal', 'collection', 'social', 'performance', 'meta'];
+const KIND_LABELS = {
+  progression: 'Progression', challenge: 'Challenge', seasonal: 'Seasonal',
+  collection: 'Collection', social: 'Social', performance: 'Performance', meta: 'Meta'
+};
+
+// ============================================================
+// GOAL LIBRARY — contributors edit this array.
+// Schema: id, scope, kind, tier, category, title, [desc, classes, server, eventDates, repeatable, track]
+// ============================================================
+const GOALS_DATA = [
+
+  // ===== GLOBAL — PROGRESSION =====
+  { id: 'g-team-join',   scope: 'global', kind: 'progression', tier: 'core',    category: 'Team', title: 'Join or form a Team', desc: 'The social layer is half of PSO.', server: 'any' },
+  { id: 'g-first-80',    scope: 'global', kind: 'progression', tier: 'core',    category: 'Progression', title: 'Get your first character to Lv80', desc: 'Ultimate-mode eligibility on the account.', server: 'any' },
+  { id: 'g-every-id',    scope: 'global', kind: 'progression', tier: 'stretch', category: 'Progression', title: 'Experience every Section ID', desc: 'At least one character per ID. Opens the full drop table.', server: 'any' },
+  { id: 'g-three-100',   scope: 'global', kind: 'progression', tier: 'stretch', category: 'Progression', title: 'Three characters to Lv100+', desc: 'Variety is the spice of the grind.', server: 'any' },
+  { id: 'g-char-200',    scope: 'global', kind: 'progression', tier: 'legendary', category: 'Progression', title: 'Level any character to 200', desc: 'The cap. Account-level prestige.', server: 'any' },
+  { id: 'g-pd-100',      scope: 'global', kind: 'progression', tier: 'stretch', category: 'Economy', title: 'Accumulate 100 Photon Drops', desc: 'Entry-level trading currency.', server: 'any' },
+  { id: 'g-ps-trade',    scope: 'global', kind: 'progression', tier: 'stretch', category: 'Economy', title: 'Complete a Photon Sphere trade', desc: '100 PD → 1 PS.', server: 'any' },
+  { id: 'g-cm-ep1-s1',   scope: 'global', kind: 'progression', tier: 'stretch', category: 'Challenge Mode', title: 'Challenge Mode: clear Ep1 Stage 1', desc: 'The party-play test.', server: 'any' },
+  { id: 'g-cm-ep1-full', scope: 'global', kind: 'progression', tier: 'legendary', category: 'Challenge Mode', title: 'Challenge Mode: complete all Ep1 stages', desc: 'A full-season project.', server: 'any' },
+
+  // ===== GLOBAL — COLLECTION =====
+  { id: 'g-own-psycho',  scope: 'global', kind: 'collection', tier: 'legendary', category: 'Collection', title: 'Own a Psycho Wand', desc: 'Dark Falz Ultimate drop on specific IDs.', server: 'ephinea' },
+  { id: 'g-own-jsword',  scope: 'global', kind: 'collection', tier: 'legendary', category: 'Collection', title: 'Own an unsealed J-Sword', desc: 'Sealed J-Sword + kills to unseal.', server: 'any' },
+  { id: 'g-own-red-ring',scope: 'global', kind: 'collection', tier: 'legendary', category: 'Collection', title: 'Own a Red Ring', desc: 'Olga Flow Ultimate drop.', server: 'any' },
+  { id: 'g-own-god-set', scope: 'global', kind: 'collection', tier: 'stretch', category: 'Collection', title: 'Own a full God unit set', desc: 'God/Arm, Body, Shot, HP, Power, Mind, Ability, Technique, Battle, Legs.', server: 'any' },
+  { id: 'g-own-heart-chao', scope: 'global', kind: 'collection', tier: 'stretch', category: 'Collection', title: 'Own a Heart of Chao', desc: 'Rare mag cell. Evolves specific mags.', server: 'any' },
+
+  // ===== GLOBAL — SOCIAL / TEAM =====
+  { id: 'g-team-10',     scope: 'global', kind: 'social', tier: 'core',    category: 'Team', title: 'Fill your Team to 10 members', desc: 'Ephinea starts teams at 10-member cap.', server: 'ephinea' },
+  { id: 'g-team-flag',   scope: 'global', kind: 'social', tier: 'stretch', category: 'Team', title: 'Unlock a Team Flag', desc: 'Costs team points. Design one.', server: 'ephinea' },
+  { id: 'g-team-dress',  scope: 'global', kind: 'social', tier: 'stretch', category: 'Team', title: 'Unlock the Dressing Room', desc: 'Team-wide outfit changer.', server: 'ephinea' },
+  { id: 'g-team-25',     scope: 'global', kind: 'social', tier: 'stretch', category: 'Team', title: 'Grow your Team to 25 members', desc: 'Requires team-point unlocks to expand slots.', server: 'ephinea' },
+  { id: 'g-team-50',     scope: 'global', kind: 'social', tier: 'legendary', category: 'Team', title: 'Grow your Team to 50 members', desc: 'A real guild by now.', server: 'ephinea' },
+  { id: 'g-team-pts-100',scope: 'global', kind: 'social', tier: 'stretch', category: 'Team', title: 'Contribute 100 team points', desc: 'Donate rares (9★=1pt, 10★=10pt tiers).', server: 'ephinea' },
+  { id: 'g-team-pts-1k', scope: 'global', kind: 'social', tier: 'legendary', category: 'Team', title: 'Contribute 1,000 team points', desc: 'Serious donation milestone.', server: 'ephinea' },
+  { id: 'g-team-ult',    scope: 'global', kind: 'social', tier: 'stretch', category: 'Team', title: 'Clear Ultimate content with a full Team party', desc: 'All four slots filled by teammates.', server: 'any' },
+  { id: 'g-carry',       scope: 'global', kind: 'social', tier: 'stretch', category: 'Team', title: 'Carry a teammate through their first Ultimate clear', desc: 'Pay it forward.', server: 'any' },
+  { id: 'g-mentor',      scope: 'global', kind: 'social', tier: 'stretch', category: 'Community', title: 'Teach 3 new players something specific', desc: 'Tech routing, drop mechanics, party combos — whatever. Teaching solidifies skill.', server: 'any' },
+  { id: 'g-wiki',        scope: 'global', kind: 'social', tier: 'stretch', category: 'Community', title: 'Contribute to a community resource', desc: 'Wiki edit, drop-sheet entry, guide post, highlight clip.', server: 'any' },
+  { id: 'g-host-event',  scope: 'global', kind: 'social', tier: 'stretch', category: 'Community', title: 'Host a Team or public event run', desc: 'Lead a scheduled group activity.', server: 'any' },
+
+  // ===== GLOBAL — SEASONAL (Ephinea) =====
+  { id: 'g-event-valentine',   scope: 'global', kind: 'seasonal', tier: 'core',    category: 'Events', title: 'Participate in Valentine\'s Event', desc: 'Two-week event in mid-February.', server: 'ephinea', eventDates: { months: [2], label: 'February', recurring: true } },
+  { id: 'g-event-easter',      scope: 'global', kind: 'seasonal', tier: 'core',    category: 'Events', title: 'Participate in the Easter Event', desc: 'Four-week event around April. Event Eggs drop server-wide — trade at the Egg Shop.', server: 'ephinea', eventDates: { months: [4], label: 'April', recurring: true } },
+  { id: 'g-event-anniv',       scope: 'global', kind: 'seasonal', tier: 'core',    category: 'Events', title: 'Participate in the Anniversary Event', desc: 'August, four weeks. Maximum Attack E quests plus Anniversary Badges currency.', server: 'ephinea', eventDates: { months: [8], label: 'August', recurring: true } },
+  { id: 'g-event-anniv-milestones', scope: 'global', kind: 'seasonal', tier: 'stretch', category: 'Events', title: 'Complete the Anniversary Milestone System', desc: 'Ephinea\'s in-game achievement set during the Anniversary event.', server: 'ephinea', eventDates: { months: [8], label: 'August', recurring: true } },
+  { id: 'g-event-halloween',   scope: 'global', kind: 'seasonal', tier: 'core',    category: 'Events', title: 'Participate in Halloween Event', desc: 'November. Halloween Cookie drops from all monsters on all difficulties.', server: 'ephinea', eventDates: { months: [11], label: 'November', recurring: true } },
+  { id: 'g-event-christmas',   scope: 'global', kind: 'seasonal', tier: 'core',    category: 'Events', title: 'Participate in Christmas Event', desc: 'December. Seasonal quests and drops.', server: 'ephinea', eventDates: { months: [12, 1], label: 'December', recurring: true } },
+  { id: 'g-event-shop-stretch',scope: 'global', kind: 'seasonal', tier: 'stretch', category: 'Events', title: 'Earn an event-exclusive rare during any event', desc: 'Use event currency to claim something you couldn\'t otherwise get.', server: 'ephinea' },
+
+  // ===== GLOBAL — META =====
+  { id: 'g-meta-first',  scope: 'global', kind: 'meta', tier: 'core',    category: 'Meta', title: 'Log your first milestone', desc: 'Start the journey.', server: 'any' },
+  { id: 'g-meta-10',     scope: 'global', kind: 'meta', tier: 'core',    category: 'Meta', title: 'Log 10 milestones', desc: 'You\'re using this thing.', server: 'any' },
+  { id: 'g-meta-50',     scope: 'global', kind: 'meta', tier: 'stretch', category: 'Meta', title: 'Log 50 milestones', desc: 'A substantial journey.', server: 'any' },
+  { id: 'g-meta-200',    scope: 'global', kind: 'meta', tier: 'legendary', category: 'Meta', title: 'Log 200 milestones', desc: 'PSO really has you.', server: 'any' },
+  { id: 'g-meta-custom', scope: 'global', kind: 'meta', tier: 'core',    category: 'Meta', title: 'Add your first custom goal', desc: 'Make the tracker yours.', server: 'any' },
+  { id: 'g-meta-30days', scope: 'global', kind: 'meta', tier: 'stretch', category: 'Meta', title: 'Log milestones on 30 different days', desc: 'Proof of consistent play.', server: 'any' },
+
+  // ===== CHARACTER — PROGRESSION =====
+  { id: 'c-lvl-30',   scope: 'character', classes: 'all', kind: 'progression', tier: 'core',    category: 'Progression', title: 'Reach Level 30', desc: 'Hard mode unlocks.', server: 'any' },
+  { id: 'c-lvl-50',   scope: 'character', classes: 'all', kind: 'progression', tier: 'core',    category: 'Progression', title: 'Reach Level 50', desc: 'Comfortable in Hard.', server: 'any' },
+  { id: 'c-lvl-80',   scope: 'character', classes: 'all', kind: 'progression', tier: 'core',    category: 'Progression', title: 'Reach Level 80', desc: 'Ultimate-mode eligible.', server: 'any' },
+  { id: 'c-lvl-100',  scope: 'character', classes: 'all', kind: 'progression', tier: 'core',    category: 'Progression', title: 'Reach Level 100', desc: 'Triple digits.', server: 'any' },
+  { id: 'c-lvl-150',  scope: 'character', classes: 'all', kind: 'progression', tier: 'stretch', category: 'Progression', title: 'Reach Level 150', desc: 'Endgame ready.', server: 'any' },
+  { id: 'c-lvl-180',  scope: 'character', classes: 'all', kind: 'progression', tier: 'stretch', category: 'Progression', title: 'Reach Level 180', desc: '', server: 'any' },
+  { id: 'c-lvl-200',  scope: 'character', classes: 'all', kind: 'progression', tier: 'legendary', category: 'Progression', title: 'Reach Level 200', desc: 'The cap.', server: 'any' },
+
+  { id: 'c-quest-ep1-n',  scope: 'character', classes: 'all', kind: 'progression', tier: 'core',    category: 'Quests', title: 'All Ep1 government quests on Normal', desc: '', server: 'any' },
+  { id: 'c-quest-ep1-h',  scope: 'character', classes: 'all', kind: 'progression', tier: 'core',    category: 'Quests', title: 'All Ep1 government quests on Hard', desc: '', server: 'any' },
+  { id: 'c-quest-ep1-vh', scope: 'character', classes: 'all', kind: 'progression', tier: 'core',    category: 'Quests', title: 'All Ep1 government quests on Very Hard', desc: '', server: 'any' },
+  { id: 'c-quest-ep2-vh', scope: 'character', classes: 'all', kind: 'progression', tier: 'stretch', category: 'Quests', title: 'All Ep2 government quests on Very Hard', desc: '', server: 'any' },
+  { id: 'c-quest-ep1-ult',scope: 'character', classes: 'all', kind: 'progression', tier: 'stretch', category: 'Quests', title: 'All Ep1 government quests on Ultimate', desc: '', server: 'any' },
+  { id: 'c-quest-ttf',    scope: 'character', classes: 'all', kind: 'progression', tier: 'stretch', category: 'Quests', title: 'Complete Towards the Future', desc: 'The XP firehose quest.', server: 'any' },
+
+  { id: 'c-boss-falz-n',  scope: 'character', classes: 'all', kind: 'progression', tier: 'core',    category: 'Bosses', title: 'Defeat Dark Falz on Normal', desc: '', server: 'any' },
+  { id: 'c-boss-falz-h',  scope: 'character', classes: 'all', kind: 'progression', tier: 'core',    category: 'Bosses', title: 'Defeat Dark Falz on Hard', desc: '', server: 'any' },
+  { id: 'c-boss-falz-vh', scope: 'character', classes: 'all', kind: 'progression', tier: 'core',    category: 'Bosses', title: 'Defeat Dark Falz on Very Hard', desc: '', server: 'any' },
+  { id: 'c-boss-falz-ult',scope: 'character', classes: 'all', kind: 'progression', tier: 'stretch', category: 'Bosses', title: 'Defeat Dark Falz on Ultimate', desc: '', server: 'any' },
+  { id: 'c-boss-olga-vh', scope: 'character', classes: 'all', kind: 'progression', tier: 'stretch', category: 'Bosses', title: 'Defeat Olga Flow on Very Hard', desc: '', server: 'any' },
+  { id: 'c-boss-olga-ult',scope: 'character', classes: 'all', kind: 'progression', tier: 'stretch', category: 'Bosses', title: 'Defeat Olga Flow on Ultimate', desc: '', server: 'any' },
+  { id: 'c-solo-falz',    scope: 'character', classes: 'all', kind: 'progression', tier: 'legendary', category: 'Bosses', title: 'Solo Ultimate Dark Falz', desc: '', server: 'any' },
+  { id: 'c-solo-olga',    scope: 'character', classes: 'all', kind: 'progression', tier: 'legendary', category: 'Bosses', title: 'Solo Ultimate Olga Flow', desc: '', server: 'any' },
+
+  { id: 'c-mag-50',   scope: 'character', classes: 'all', kind: 'progression', tier: 'core',    category: 'Mag', title: 'Raise a Mag to Lv50', desc: '', server: 'any' },
+  { id: 'c-mag-100',  scope: 'character', classes: 'all', kind: 'progression', tier: 'core',    category: 'Mag', title: 'Raise a Mag to Lv100', desc: 'Photon Blast unlocked.', server: 'any' },
+  { id: 'c-mag-200',  scope: 'character', classes: 'all', kind: 'progression', tier: 'stretch', category: 'Mag', title: 'Raise a Mag to Lv200', desc: 'Max mag.', server: 'any' },
+
+  { id: 't-resta',    scope: 'character', classes: TECH_CAPABLE, kind: 'progression', tier: 'core',    category: 'Techs', title: 'Resta to Lv20', desc: '', server: 'any' },
+  { id: 't-anti',     scope: 'character', classes: TECH_CAPABLE, kind: 'progression', tier: 'core',    category: 'Techs', title: 'Anti to Lv15',  desc: '', server: 'any' },
+  { id: 't-buff',     scope: 'character', classes: TECH_CAPABLE, kind: 'progression', tier: 'core',    category: 'Techs', title: 'Shifta + Deband to Lv20', desc: '', server: 'any' },
+  { id: 't-debuff',   scope: 'character', classes: TECH_CAPABLE, kind: 'progression', tier: 'stretch', category: 'Techs', title: 'Jellen + Zalure to Lv20', desc: '', server: 'any' },
+  { id: 't-reverser', scope: 'character', classes: TECH_CAPABLE, kind: 'progression', tier: 'core',    category: 'Techs', title: 'Learn Reverser', desc: 'Revive teammates.', server: 'any' },
+  { id: 't-atk-30',   scope: 'character', classes: FORCES,       kind: 'progression', tier: 'stretch', category: 'Techs', title: 'All basic offensive techs to Lv30', desc: '', server: 'any' },
+  { id: 't-megid-30', scope: 'character', classes: FORCES,       kind: 'progression', tier: 'stretch', category: 'Techs', title: 'Master Megid (Lv30)', desc: '', server: 'any' },
+  { id: 't-grants-30',scope: 'character', classes: FORCES,       kind: 'progression', tier: 'stretch', category: 'Techs', title: 'Master Grants (Lv30)', desc: '', server: 'any' },
+
+  // Hunts - FO
+  { id: 'h-fo-glide',   scope: 'character', classes: FORCES, kind: 'progression', tier: 'stretch', category: 'Hunts', title: 'Glide Divine', desc: '', server: 'any' },
+  { id: 'h-fo-summit',  scope: 'character', classes: FORCES, kind: 'progression', tier: 'stretch', category: 'Hunts', title: 'Summit Moon', desc: '', server: 'any' },
+  { id: 'h-fo-mahu',    scope: 'character', classes: FORCES, kind: 'progression', tier: 'stretch', category: 'Hunts', title: 'Mahu', desc: '', server: 'any' },
+  { id: 'h-fo-psycho',  scope: 'character', classes: FORCES, kind: 'progression', tier: 'legendary', category: 'Hunts', title: 'Psycho Wand', desc: 'Dark Falz Ultimate drop.', server: 'ephinea' },
+
+  // Hunts - HU
+  { id: 'h-hu-red-sw',  scope: 'character', classes: HUNTERS, kind: 'progression', tier: 'stretch', category: 'Hunts', title: 'Red Sword', desc: '', server: 'any' },
+  { id: 'h-hu-lavis',   scope: 'character', classes: HUNTERS, kind: 'progression', tier: 'stretch', category: 'Hunts', title: 'Lavis Cannon', desc: '', server: 'any' },
+  { id: 'h-hu-jsword',  scope: 'character', classes: HUNTERS, kind: 'progression', tier: 'legendary', category: 'Hunts', title: 'Unseal a J-Sword', desc: 'Sealed J-Sword + kills.', server: 'any' },
+  { id: 'h-hu-excal',   scope: 'character', classes: HUNTERS, kind: 'progression', tier: 'legendary', category: 'Hunts', title: 'Excalibur', desc: '', server: 'any' },
+  { id: 'h-hu-dflow',   scope: 'character', classes: HUNTERS, kind: 'progression', tier: 'legendary', category: 'Hunts', title: 'Unseal a Dark Flow', desc: 'Lame d\'Argent + kills.', server: 'any' },
+
+  // Hunts - RA
+  { id: 'h-ra-red-m',   scope: 'character', classes: RANGERS, kind: 'progression', tier: 'stretch', category: 'Hunts', title: 'Red Mechgun', desc: '', server: 'any' },
+  { id: 'h-ra-raven',   scope: 'character', classes: RANGERS, kind: 'progression', tier: 'stretch', category: 'Hunts', title: 'Master Raven', desc: '', server: 'any' },
+  { id: 'h-ra-spread',  scope: 'character', classes: RANGERS, kind: 'progression', tier: 'stretch', category: 'Hunts', title: 'Spread Needle', desc: '', server: 'any' },
+  { id: 'h-ra-frozen',  scope: 'character', classes: RANGERS, kind: 'progression', tier: 'legendary', category: 'Hunts', title: 'Hunt a Frozen Shooter', desc: '', server: 'any' },
+  { id: 'h-ra-snow',    scope: 'character', classes: RANGERS, kind: 'progression', tier: 'legendary', category: 'Hunts', title: 'Unseal a Snow Queen', desc: 'Frozen Shooter + kills.', server: 'any' },
+  { id: 'h-ra-heaven',  scope: 'character', classes: RANGERS, kind: 'progression', tier: 'legendary', category: 'Hunts', title: 'Heaven Striker', desc: '', server: 'any' },
+
+  // ===== CHARACTER — CHALLENGE RUNS =====
+  { id: 'ch-solo-volopt',    scope: 'character', classes: 'all', kind: 'challenge', tier: 'stretch', category: 'Challenge Runs', title: 'Solo Vol Opt on Very Hard', desc: 'A self-imposed solo. No party allowed.', server: 'any' },
+  { id: 'ch-solo-falz-low',  scope: 'character', classes: 'all', kind: 'challenge', tier: 'legendary', category: 'Challenge Runs', title: 'Solo Ultimate Dark Falz at Lv100 or below', desc: 'The underdog flex.', server: 'any' },
+  { id: 'ch-naked-boss',     scope: 'character', classes: 'all', kind: 'challenge', tier: 'stretch', category: 'Challenge Runs', title: 'Clear a VH boss with no armor equipped', desc: 'Armor slot empty. Test your dodging.', server: 'any' },
+  { id: 'ch-no-units',       scope: 'character', classes: 'all', kind: 'challenge', tier: 'stretch', category: 'Challenge Runs', title: 'Clear a VH quest with no units equipped', desc: 'No Centurion/Ability crutches.', server: 'any' },
+  { id: 'ch-no-mag',         scope: 'character', classes: 'all', kind: 'challenge', tier: 'stretch', category: 'Challenge Runs', title: 'Clear a VH quest with no mag equipped', desc: 'No Photon Blast safety net. No auto-stats.', server: 'any' },
+  { id: 'ch-tech-only',      scope: 'character', classes: FORCES, kind: 'challenge', tier: 'stretch', category: 'Challenge Runs', title: 'Tech-only run of an Ult government quest', desc: 'No striking. Pure caster identity.', server: 'any' },
+  { id: 'ch-melee-only',     scope: 'character', classes: FORCES, kind: 'challenge', tier: 'stretch', category: 'Challenge Runs', title: 'Melee-only FO run of a VH quest', desc: 'The reverse challenge. Put the wand down.', server: 'any' },
+  { id: 'ch-single-weapon',  scope: 'character', classes: 'all', kind: 'challenge', tier: 'core',    category: 'Challenge Runs', title: 'Clear a VH quest using only one weapon', desc: 'Mono-weapon discipline.', server: 'any' },
+  { id: 'ch-no-materials',   scope: 'character', classes: 'all', kind: 'challenge', tier: 'legendary', category: 'Challenge Runs', title: 'Reach Lv100 without using any materials', desc: 'Virgin stats. Keep it clean.', server: 'any' },
+  { id: 'ch-one-life',       scope: 'character', classes: 'all', kind: 'challenge', tier: 'legendary', category: 'Challenge Runs', title: 'Zero-death solo clear of Ult Towards the Future', desc: 'One mistake and it restarts.', server: 'any' },
+  { id: 'ch-no-resta',       scope: 'character', classes: 'all', kind: 'challenge', tier: 'stretch', category: 'Challenge Runs', title: 'No-Resta run of a VH boss', desc: 'Atomizers and mates only.', server: 'any' },
+  { id: 'ch-classic-starter',scope: 'character', classes: 'all', kind: 'challenge', tier: 'core',    category: 'Challenge Runs', title: 'VH quest run with only starter-grade weapons', desc: 'No rares allowed.', server: 'any' },
+
+  // ===== CHARACTER — COLLECTION =====
+  { id: 'col-rappy',             scope: 'character', classes: 'all', kind: 'collection', tier: 'stretch', category: 'Collection', title: 'Encounter every rare Rappy variant', desc: 'Al, Pal, Love, plus seasonal variants on Ephinea.', server: 'ephinea' },
+  { id: 'col-every-boss-ult',    scope: 'character', classes: 'all', kind: 'collection', tier: 'stretch', category: 'Collection', title: 'Defeat every boss on Ultimate', desc: 'Dragon, De Rol Le, Vol Opt, Falz, Barba Ray, Gol Dragon, Gal Gryphon, Olga Flow.', server: 'any' },
+  { id: 'col-every-quest-vh',    scope: 'character', classes: 'all', kind: 'collection', tier: 'legendary', category: 'Collection', title: 'Complete every quest on Very Hard', desc: 'Government + side quests.', server: 'any' },
+  { id: 'col-all-elements-wand', scope: 'character', classes: FORCES, kind: 'collection', tier: 'legendary', category: 'Collection', title: 'Own every element of a wand at +Special', desc: 'Full elemental set.', server: 'any' },
+  { id: 'col-rare-mags',         scope: 'character', classes: 'all', kind: 'collection', tier: 'stretch', category: 'Collection', title: 'Evolve 3 distinct rare mags', desc: 'Sato, Nidra, Devil, Chao, Elenor, Estlla, etc.', server: 'any' },
+  { id: 'col-all-discs',         scope: 'character', classes: FORCES, kind: 'collection', tier: 'stretch', category: 'Collection', title: 'Collect all 30 technique discs', desc: 'Every tech in your disc collection.', server: 'any' },
+
+  // ===== CHARACTER — PERFORMANCE (repeatable, time PB) =====
+  { id: 'pb-ttf',       scope: 'character', classes: 'all', kind: 'performance', tier: 'stretch', category: 'Speedruns', title: 'Towards the Future PB', desc: 'Log your best solo time. Beatable forever.', server: 'any', repeatable: true, track: 'time' },
+  { id: 'pb-volopt',    scope: 'character', classes: 'all', kind: 'performance', tier: 'stretch', category: 'Speedruns', title: 'Vol Opt Ultimate solo PB', desc: '', server: 'any', repeatable: true, track: 'time' },
+  { id: 'pb-falz',      scope: 'character', classes: 'all', kind: 'performance', tier: 'stretch', category: 'Speedruns', title: 'Dark Falz Ultimate solo PB', desc: 'Phase 3 is the clock.', server: 'any', repeatable: true, track: 'time' },
+  { id: 'pb-olga',      scope: 'character', classes: 'all', kind: 'performance', tier: 'stretch', category: 'Speedruns', title: 'Olga Flow Ultimate solo PB', desc: '', server: 'any', repeatable: true, track: 'time' },
+  { id: 'pb-pioneer',   scope: 'character', classes: 'all', kind: 'performance', tier: 'stretch', category: 'Speedruns', title: 'Pioneer Spirit solo PB', desc: '', server: 'any', repeatable: true, track: 'time' },
+  { id: 'pb-volopt-1m', scope: 'character', classes: 'all', kind: 'performance', tier: 'legendary', category: 'Speedruns', title: 'Sub-60 second Vol Opt clear', desc: 'The tightest minute in PSO.', server: 'any' },
+
+  // ===== CHARACTER — MODES =====
+  { id: 'c-battle-1',   scope: 'character', classes: 'all', kind: 'progression', tier: 'stretch', category: 'Modes', title: 'Complete a Battle Mode match', desc: 'PvP exists. Try it once.', server: 'any' },
+];
+
+// ============================================================
+// GOAL STRATEGY — how-to hints, wiki links, and prerequisites.
+// Kept as a separate lookup table so goal data stays minimal and
+// contributors can add strategy notes without touching GOALS_DATA.
+// Schema: { 'goal-id': { strategy?: string, wiki?: string, requires?: [goalId,...] } }
+// ============================================================
+const GOAL_STRATEGY = {
+  // ===== GLOBAL — PROGRESSION =====
+  'g-team-join': {
+    strategy: 'At Pioneer 2, visit the Team counter. Anyone with 1+ player can start one; joining is just accepting an invite.',
+    wiki: 'https://wiki.pioneer2.net/en/Team'
+  },
+  'g-first-80': {
+    strategy: 'Grind Hard-mode TTF (Seaside \u2192 West Tower) or Ruins runs once VH is unlocked. ~Lv80 opens Ultimate on account.',
+    wiki: 'https://wiki.pioneer2.net/en/Towards_the_Future'
+  },
+  'g-every-id': {
+    strategy: 'Each Section ID (10 total) unlocks different rare drops. Make one character per ID to see the full table over time.',
+    wiki: 'https://wiki.pioneer2.net/en/Section_ID'
+  },
+  'g-three-100': {
+    strategy: 'TTF Ultimate is the fastest grind once you\'re 80+. Multiclass builds open up very different drop tables.'
+  },
+  'g-char-200': {
+    strategy: 'Long grind \u2014 195\u2192200 alone is tens of millions of XP. Ult TTF, Maximum Attack quests, and Gal Gryphon farms are standard.'
+  },
+  'g-pd-100': {
+    strategy: 'Ult Ruins and event quests drop PDs from chests. Sell 9\u2605/10\u2605 rares at shops or trade player-to-player.',
+    wiki: 'https://wiki.pioneer2.net/en/Photon_Drop'
+  },
+  'g-ps-trade': {
+    strategy: '100 PD \u2192 1 PS at Paganini (Ep2 Lab counter) or via player trade. PS unlocks tier-2 crafting.',
+    wiki: 'https://wiki.pioneer2.net/en/Photon_Sphere'
+  },
+  'g-cm-ep1-s1': {
+    strategy: 'Challenge Mode is its own character slot \u2014 fresh Lv1, Normal gear only. Stage 1 is the tutorial for CM itself.',
+    wiki: 'https://wiki.pioneer2.net/en/Challenge_Mode'
+  },
+  'g-cm-ep1-full': {
+    strategy: 'Nine stages. S-rank times unlock S-rank weapons \u2014 but just completing all 9 is the milestone here.',
+    wiki: 'https://wiki.pioneer2.net/en/Challenge_Mode'
+  },
+
+  // ===== GLOBAL — COLLECTION =====
+  'g-own-psycho': {
+    strategy: 'FO hunts it from Dark Falz Ultimate. IDs: Skyly / Bluefull / Purplenum / Pinkal. Drop rates are rough \u2014 plan months.',
+    wiki: 'https://wiki.pioneer2.net/en/Psycho_Wand',
+    requires: ['h-fo-psycho']
+  },
+  'g-own-jsword': {
+    strategy: 'Hunt Sealed J-Sword (Ult Ep1 enemies on specific IDs), then kill 20k enemies while equipped to unseal.',
+    wiki: 'https://wiki.pioneer2.net/en/J-Sword',
+    requires: ['h-hu-jsword']
+  },
+  'g-own-red-ring': {
+    strategy: 'Olga Flow Ultimate rare drop. ID-gated. Or: trade ~200+ PDs on Ephinea market during slow weeks.',
+    wiki: 'https://wiki.pioneer2.net/en/Red_Ring'
+  },
+  'g-own-god-set': {
+    strategy: '10 slots: God/Arm, Body, Shot, HP, Power, Mind, Ability, Technique, Battle, Legs. Each drops from specific enemies; Paganini sells some.',
+    wiki: 'https://wiki.pioneer2.net/en/Units'
+  },
+  'g-own-heart-chao': {
+    strategy: 'Mag cell from event shops and the mag cell exchange. Combines with specific mags to evolve into Chao.',
+    wiki: 'https://wiki.pioneer2.net/en/Heart_of_Chao'
+  },
+
+  // ===== GLOBAL — SOCIAL =====
+  'g-team-10': {
+    strategy: 'Ephinea teams start with 10 slots. Invite via the Team counter on Pioneer 2.',
+    wiki: 'https://wiki.pioneer2.net/en/Team'
+  },
+  'g-team-flag': { strategy: 'Costs team points. Upload a 16\u00d716 sprite via the Ephinea team-flag form on the website.', wiki: 'https://wiki.pioneer2.net/en/Team' },
+  'g-team-dress': { strategy: 'Unlocked via team-point spending at the Team counter. Lets members swap cosmetics freely.', wiki: 'https://wiki.pioneer2.net/en/Team' },
+  'g-team-25': { strategy: 'Requires unlocking the +5 and +10 member expansions via team points.', wiki: 'https://wiki.pioneer2.net/en/Team' },
+  'g-team-50': { strategy: 'All member-slot expansions unlocked. Serious team-point investment required.', wiki: 'https://wiki.pioneer2.net/en/Team' },
+  'g-team-pts-100': { strategy: 'Donate 9\u2605 rares (~1 pt) up to 12\u2605 (~10 pt tiers). Consolidate dupes into points.', wiki: 'https://wiki.pioneer2.net/en/Team' },
+  'g-team-pts-1k': { strategy: 'Roughly 100+ rare donations or a handful of elite 12\u2605 donations.', wiki: 'https://wiki.pioneer2.net/en/Team' },
+  'g-team-ult': { strategy: 'Coordinate four teammates in one lobby. Ult Ep1 bosses are the most practical first clear.' },
+  'g-carry': { strategy: 'Party up with a lower-level teammate, pace to their run, let them land the kill where possible.' },
+  'g-mentor': { strategy: 'Teach: rare drop mechanics (ID, rates), tech combos (GiZonde-stunning), or quest routing.' },
+  'g-wiki': { strategy: 'Ephinea Wiki accepts edits \u2014 add missing drop info, fix a typo, or contribute a quest guide.', wiki: 'https://wiki.pioneer2.net/en/' },
+  'g-host-event': { strategy: 'Schedule a TTF run, Maximum Attack hour, or speedrun race. Post in your team\'s channel + Ephinea Discord.' },
+
+  // ===== GLOBAL — SEASONAL =====
+  'g-event-valentine': { strategy: 'Valentine Cookies drop from all monsters during the event \u2014 trade at the Cookie Shop for rare chocolates/minions.', wiki: 'https://wiki.pioneer2.net/en/Events' },
+  'g-event-easter': { strategy: 'Event Eggs drop server-wide. Trade at the Egg Shop for rares, units, and cosmetics.', wiki: 'https://wiki.pioneer2.net/en/Events' },
+  'g-event-anniv': { strategy: 'Maximum Attack E quests unlock, Anniversary Badges drop, and the Milestone System tracks server-wide achievements.', wiki: 'https://wiki.pioneer2.net/en/Events' },
+  'g-event-anniv-milestones': { strategy: 'In-game achievement board during August. Some rewards are exclusive \u2014 check the list on day one.', wiki: 'https://wiki.pioneer2.net/en/Events' },
+  'g-event-halloween': { strategy: 'Halloween Cookies drop from all monsters on all difficulties. Trade for Jack-O-Lantern and event rares.', wiki: 'https://wiki.pioneer2.net/en/Events' },
+  'g-event-christmas': { strategy: 'Spans late December through early January. Christmas Presents drop; exchange for seasonal rares.', wiki: 'https://wiki.pioneer2.net/en/Events' },
+  'g-event-shop-stretch': { strategy: 'Any event-shop-exclusive item counts: Cookie-Shop rare, Badge-Shop weapon, Easter Egg-Shop unit.' },
+
+  // ===== GLOBAL — META =====
+  'g-meta-first': { strategy: 'Click any checkmark above. You\'ve got this.' },
+  'g-meta-10':    { strategy: 'Ten in, and the journey log starts to feel like yours.' },
+  'g-meta-50':    { strategy: 'Fifty entries \u2014 export a backup JSON from the menu.' },
+  'g-meta-200':   { strategy: 'You are not just playing PSO \u2014 you are documenting a life with it.' },
+  'g-meta-custom':{ strategy: 'Scroll to the bottom of any tier tab. Use the "Add a custom goal" form.' },
+  'g-meta-30days':{ strategy: 'Consistency beats intensity. 30 sessions across weeks or months.' },
+
+  // ===== CHARACTER — PROGRESSION =====
+  'c-lvl-30':  { strategy: 'Forest/Caves on Normal is fine. Hard unlocks at Lv20.' },
+  'c-lvl-50':  { strategy: 'Ruins Hard or Ep2 Seaside Hard. Run Maximum Attack quests when live.' },
+  'c-lvl-80':  { strategy: 'Ultimate opens at ~80. Once there, Ult TTF becomes a possibility.' },
+  'c-lvl-100': { strategy: 'Ult TTF or Endless Nightmare for steady XP. Mag Photon Blasts unlock at 100 too.' },
+  'c-lvl-150': { strategy: 'Respec mag support stats if you haven\'t. Your build matters more than the grind pace now.' },
+  'c-lvl-180': { strategy: 'The final 20 levels are ~50% of the total grind. Maximum Attack events are the fast lane.' },
+  'c-lvl-200': { strategy: 'Gal Gryphon farm, Ult MA E, or chain TTF. Budget months, not days.' },
+
+  'c-quest-ep1-n':  { strategy: 'Principal\'s Gift Vouchers on the first completion \u2014 bank them for 9\u2605 rare trades.' },
+  'c-quest-ep1-h':  { strategy: 'Same quests, tougher enemies. Hard unlocks at Lv20.' },
+  'c-quest-ep1-vh': { strategy: 'VH unlocks at Lv40. Drops start including unsealed rares.' },
+  'c-quest-ep2-vh': { strategy: 'Seaside, VR Temple, VR Spaceship, Central Control Area. Gal Gryphon is the final boss.' },
+  'c-quest-ep1-ult':{ strategy: 'Ultimate-unique rares become possible. Bring elemental weapons matched to each area.' },
+  'c-quest-ttf':    { strategy: 'Government-flag quest. Rewards scale with difficulty. On Ult it\'s the best steady XP in the game.', wiki: 'https://wiki.pioneer2.net/en/Towards_the_Future' },
+
+  'c-boss-falz-n':  { strategy: 'Ep1 final boss. 3 phases \u2014 sword phase, bird phase, gravity phase.', wiki: 'https://wiki.pioneer2.net/en/Dark_Falz' },
+  'c-boss-falz-h':  { strategy: 'Bring Anti to cleanse the sword-phase status. Phase 3 still uses Grants.' },
+  'c-boss-falz-vh': { strategy: 'Phase 3 AoE can one-shot squishies. Stay at wing range.' },
+  'c-boss-falz-ult':{ strategy: 'Ult Falz on Skyly/Bluefull/Purplenum/Pinkal can drop Psycho Wand. Bring mind + dark resist gear.' },
+  'c-boss-olga-vh': { strategy: 'Ep2 final. Two forms. Gi-techs and ranger kiting both work.' },
+  'c-boss-olga-ult':{ strategy: 'Ult Olga can drop Red Ring. Nuke the arm modules to skip mechanics.', wiki: 'https://wiki.pioneer2.net/en/Olga_Flow' },
+  'c-solo-falz':    { strategy: 'Solo reduces his HP \u2014 but also your revives. FO Rabarta + Reverser is a classic safe kit.' },
+  'c-solo-olga':    { strategy: 'Arm modules first, both forms. Expect a 10+ minute fight.' },
+
+  'c-mag-50':  { strategy: 'Feed monomates/dimates/trimates tracking a DEF/POW/MIND build. Use the PSOBB Mag Calculator.', wiki: 'https://wiki.pioneer2.net/en/Mag' },
+  'c-mag-100': { strategy: 'At 100, Photon Blast is usable. Feed schedule matters \u2014 follow a calculator.', wiki: 'https://wiki.pioneer2.net/en/Photon_Blast' },
+  'c-mag-200': { strategy: 'Max stat total = 200. Plan the endgame stats before you start feeding Lv50+.', wiki: 'https://wiki.pioneer2.net/en/Mag' },
+
+  't-resta':   { strategy: 'Resta disc Lv1-15 from shops; 16+ from drops or trades. Stack MST gear when leveling discs.', wiki: 'https://wiki.pioneer2.net/en/Technique' },
+  't-anti':    { strategy: 'Clears Paralysis, Freeze, Poison, Confusion. Lv15 radius is party-wide.' },
+  't-buff':    { strategy: 'Shifta boosts ATP, Deband boosts DFP/EVP. Lv20 = full buff for VH/Ult content.' },
+  't-debuff':  { strategy: 'Jellen drops enemy ATP, Zalure drops DFP. Stacks with your party\'s buffs.' },
+  't-reverser':{ strategy: 'Dropped disc \u2014 no shop version. Scape Dolls have limits; Reverser does not.' },
+  't-atk-30':  { strategy: 'All Foie/Zonde/Barta and their Ra/Gi variants. Disc 21+ mostly drop from Ult enemies.' },
+  't-megid-30':{ strategy: 'Instant-kill at 30 on non-boss enemies. Dropped mostly from Ult De Rol Le and Dark Falz.' },
+  't-grants-30':{ strategy: 'Strongest single-target light tech. Dropped from Ult Falz/Olga-tier enemies.' },
+
+  // ===== HUNTS — FO =====
+  'h-fo-glide':  { strategy: 'Rappy Ep2 Ult drop (Love Rappy) or event drops. Mind + tech boost on swing.', wiki: 'https://wiki.pioneer2.net/en/Glide_Divine' },
+  'h-fo-summit': { strategy: 'Gol Dragon Ult drop on specific IDs. Lightning wand.', wiki: 'https://wiki.pioneer2.net/en/Summit_Moon' },
+  'h-fo-mahu':   { strategy: 'Dark Falz Ult drop. Dark element \u2014 fire/light wand for neutral runs.', wiki: 'https://wiki.pioneer2.net/en/Mahu' },
+  'h-fo-psycho': { strategy: 'Dark Falz Ultimate on Skyly, Bluefull, Purplenum, or Pinkal. Infinite-TP wand.', wiki: 'https://wiki.pioneer2.net/en/Psycho_Wand' },
+
+  // ===== HUNTS — HU =====
+  'h-hu-red-sw':  { strategy: 'Gigobooma/Dimenian Ult drops on select IDs. Flag-rare red-series sword.', wiki: 'https://wiki.pioneer2.net/en/Red_Sword' },
+  'h-hu-lavis':   { strategy: 'Dark Belra Ult drop (Redria/Oran). Combo-chains scale with kill count.', wiki: 'https://wiki.pioneer2.net/en/Lavis_Cannon' },
+  'h-hu-jsword':  { strategy: 'Hunt Sealed J-Sword (Ep1 Ult), then kill 20k enemies while equipped for the unseal.', wiki: 'https://wiki.pioneer2.net/en/J-Sword' },
+  'h-hu-excal':   { strategy: 'Dark Bringer Ult drop on select IDs. Strong light-attribute saber.', wiki: 'https://wiki.pioneer2.net/en/Excalibur' },
+  'h-hu-dflow':   { strategy: 'Hunt Lame d\'Argent first (Ult Ep1 enemies on specific IDs), then kill 30k enemies while equipped.', wiki: 'https://wiki.pioneer2.net/en/Dark_Flow' },
+
+  // ===== HUNTS — RA =====
+  'h-ra-red-m':   { strategy: 'Ep2 Ult Gibbles/Mericarols on specific IDs. Red-series mech.', wiki: 'https://wiki.pioneer2.net/en/Red_Mechgun' },
+  'h-ra-raven':   { strategy: 'Indi Belra/Dorphon Ult drop. High-ATP handgun.', wiki: 'https://wiki.pioneer2.net/en/Master_Raven' },
+  'h-ra-spread':  { strategy: 'Baranz Ult drop on specific IDs. Each shot hits multiple targets.', wiki: 'https://wiki.pioneer2.net/en/Spread_Needle' },
+  'h-ra-frozen':  { strategy: 'Sinow Blue/Red Ult drop on Skyly/Purplenum/Whitill. Gateway to Snow Queen.', wiki: 'https://wiki.pioneer2.net/en/Frozen_Shooter' },
+  'h-ra-snow':    { strategy: 'Equip Frozen Shooter and kill 30k enemies to unseal it into Snow Queen.', wiki: 'https://wiki.pioneer2.net/en/Snow_Queen', requires: ['h-ra-frozen'] },
+  'h-ra-heaven':  { strategy: 'Upgrade path from Last Survivor/Guilty Light/etc. \u2014 long chain of combine recipes.', wiki: 'https://wiki.pioneer2.net/en/Heaven_Striker' },
+
+  // ===== CHALLENGE RUNS =====
+  'ch-solo-volopt':   { strategy: 'Solo = no party in lobby. Ranger with Frozen/Snow Queen trivializes the fight.' },
+  'ch-solo-falz-low': { strategy: 'Cap at Lv100 equipped-level. Best done on FO with Grants + Resta, or HU with spirit-regen weapon.' },
+  'ch-naked-boss':    { strategy: 'Armor slot empty. Max your mag DFP substat and bring Scape Dolls as your only safety net.' },
+  'ch-no-units':      { strategy: 'No Centurion/Ability, no God/HP, nothing in the 4 slots. Your raw build has to carry.' },
+  'ch-no-mag':        { strategy: 'No mag at all. No PB, no triggered auto-revive, no stat boost. HU survives best here.' },
+  'ch-tech-only':     { strategy: 'FO only. No normal/hard/special attacks \u2014 only techs. Grants/Megid carry the Ult runs.' },
+  'ch-melee-only':    { strategy: 'FO with only sabers/swords equipped. No techs (except Resta/Anti). Humbling.' },
+  'ch-single-weapon': { strategy: 'Pick one weapon. If it breaks, you break. Saber + shield is the safe pick.' },
+  'ch-no-materials':  { strategy: 'Zero Power/Mind/HP/TP/Def/Evade/Luck materials. Your base stats from leveling only.' },
+  'ch-one-life':      { strategy: 'No Scape Dolls, no Reverser. Die once, restart TTF from the top.' },
+  'ch-no-resta':      { strategy: 'Atomizers only \u2014 no Resta cast, no group heal. HU with Lavis Cannon regen is popular.' },
+  'ch-classic-starter':{ strategy: 'Saber/Handgun/Partisan/Rifle \u2014 the starter-shop tier. No rares at all.' },
+
+  // ===== COLLECTION =====
+  'col-rappy': { strategy: 'Al (Ep1 Forest), Pal (Ep1 Dragon area ID-dependent), Love (Ep2), plus seasonal Halo/Saint/Egg Rappies.', wiki: 'https://wiki.pioneer2.net/en/Rare_Rappy' },
+  'col-every-boss-ult': { strategy: 'Dragon, De Rol Le, Vol Opt, Dark Falz, Barba Ray, Gol Dragon, Gal Gryphon, Olga Flow \u2014 one kill each on Ult.' },
+  'col-every-quest-vh': { strategy: 'Government + every side quest offered at the counter. Expect 30+ quests depending on server.' },
+  'col-all-elements-wand': { strategy: 'Stag Cutlery or Rod of Proof \u2014 build one of each element (Fire/Ice/Thunder/Dark/Light) at 50%+ special.' },
+  'col-rare-mags': { strategy: 'Sato (Opa Opa + Elenor), Nidra (mag 200 + mag cell), Devil (Heart of Devil), Chao (Heart of Chao), Elenor (mag cell).', wiki: 'https://wiki.pioneer2.net/en/Mag' },
+  'col-all-discs': { strategy: 'Foie, Barta, Zonde + Ra/Gi variants, Gifoie, Rabarta, Razonde, Grants, Megid, Resta, Anti, Shifta, Deband, Jellen, Zalure, Reverser, Ryuker.', wiki: 'https://wiki.pioneer2.net/en/Technique' },
+
+  // ===== PERFORMANCE =====
+  'pb-ttf':       { strategy: 'Route: West Tower \u2192 Seaside \u2192 VR Temple \u2192 VR Spaceship \u2192 CCA \u2192 Seabed \u2192 Tower. Optimize warp paths.', wiki: 'https://wiki.pioneer2.net/en/Towards_the_Future' },
+  'pb-volopt':    { strategy: 'Freeze-lock with Frozen Shooter on the tentacles, then nuke the main body. RA strongly favored.' },
+  'pb-falz':      { strategy: 'Phase 3 dominates the timer. FO with Grants + Psycho Wand + dark resist; skip Phase 1 damage windows.' },
+  'pb-olga':      { strategy: 'Kill arms first to skip mechanics. Gi-techs or mechs with hit% chains.' },
+  'pb-pioneer':   { strategy: 'Pioneer Spirit = speedrun-oriented Ep1 quest. Routing and area-skip tech are the game.' },
+  'pb-volopt-1m': { strategy: 'Requires perfect freeze-lock + god-tier DPS. Usually only cleared by RAcast with endgame gear.' },
+
+  // ===== MODES =====
+  'c-battle-1':   { strategy: 'Pioneer 2 Battle counter. Rules 1-8 \u2014 pick Rule 1 (standard) for your first match.', wiki: 'https://wiki.pioneer2.net/en/Battle_Mode' }
+};
+
+function withStrategy(g) {
+  const s = GOAL_STRATEGY[g.id];
+  return s ? { ...g, ...s } : g;
+}
+
+// ============================================================
+// STATE
+// ============================================================
+const STORAGE_KEY = 'psobb-journey-log-v2';
+const DEFAULT_KIND_FILTERS = { progression: true, challenge: true, seasonal: true, collection: true, social: true, performance: true, meta: true };
+let state = {
+  schemaVersion: 3,
+  characters: [],
+  activeContext: 'global',
+  server: 'ephinea',
+  achievements: {},
+  customGoals: [],
+  kindFilters: { ...DEFAULT_KIND_FILTERS },
+  seasonalShowPast: false
+};
+let activeTier = 'core';
+let pendingLogGoalId = null;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const p = JSON.parse(raw);
+      state = {
+        schemaVersion: 3,
+        characters: p.characters || [],
+        activeContext: p.activeContext || 'global',
+        server: p.server || 'ephinea',
+        achievements: p.achievements || {},
+        customGoals: p.customGoals || [],
+        kindFilters: p.kindFilters || { ...DEFAULT_KIND_FILTERS },
+        seasonalShowPast: p.seasonalShowPast || false
+      };
+    }
+  } catch (e) { console.warn('Could not load:', e); }
+}
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch (e) { console.warn('Could not save:', e); }
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function getActiveCharacter() {
+  if (state.activeContext === 'global') return null;
+  return state.characters.find(c => c.id === state.activeContext) || null;
+}
+function classApplies(goal, charClass) {
+  if (!goal.classes || goal.classes === 'all') return true;
+  return Array.isArray(goal.classes) && goal.classes.includes(charClass);
+}
+function serverApplies(goal) {
+  const s = goal.server || 'any';
+  if (state.server === 'any') return true;
+  return s === 'any' || s === state.server;
+}
+function kindApplies(goal) {
+  return state.kindFilters[goal.kind || 'progression'] !== false;
+}
+function allGoals() { return [...GOALS_DATA, ...state.customGoals].map(withStrategy); }
+
+function isPrereqDone(prereqId) {
+  const g = allGoals().find(x => x.id === prereqId);
+  if (!g) return false;
+  return !!(state.achievements[achievementKey(g)] || {}).achieved;
+}
+function toggleHowto(id) {
+  const panel = document.getElementById('howto-' + id);
+  const toggle = document.getElementById('howto-toggle-' + id);
+  if (panel) panel.classList.toggle('open');
+  if (toggle) toggle.classList.toggle('open');
+}
+function scrollToGoal(id) {
+  const el = document.getElementById('card-' + id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('goal-flash');
+    setTimeout(() => el.classList.remove('goal-flash'), 1500);
+  }
+}
+
+function seasonalStatus(goal) {
+  if (goal.kind !== 'seasonal' || !goal.eventDates) return null;
+  const months = goal.eventDates.months || [];
+  const now = new Date();
+  const curMonth = now.getMonth() + 1;
+  if (months.includes(curMonth)) return 'active';
+  // "Upcoming" = starts within ~45 days
+  const nextMonth = (curMonth % 12) + 1;
+  if (months.includes(nextMonth)) return 'upcoming';
+  return 'past';
+}
+
+function goalsInScope() {
+  const char = getActiveCharacter();
+  const wantScope = char ? 'character' : 'global';
+  return allGoals().filter(g => {
+    if (g.scope !== wantScope) return false;
+    if (!serverApplies(g)) return false;
+    if (!kindApplies(g)) return false;
+    if (char && !classApplies(g, char.class)) return false;
+    if (g.kind === 'seasonal' && !state.seasonalShowPast && seasonalStatus(g) === 'past') return false;
+    return true;
+  });
+}
+function achievementKey(goal) {
+  if (goal.scope === 'global') return goal.id;
+  const char = getActiveCharacter();
+  return char ? `${goal.id}::${char.id}` : goal.id;
+}
+function getAchievement(goal) { return state.achievements[achievementKey(goal)] || {}; }
+
+function tierCounts(tier) {
+  const items = goalsInScope().filter(g => g.tier === tier);
+  const done = items.filter(g => getAchievement(g).achieved).length;
+  return { done, total: items.length };
+}
+function goalsByCategory(tier) {
+  const items = goalsInScope().filter(g => g.tier === tier);
+  const groups = {};
+  for (const g of items) {
+    const key = g.category || 'Uncategorized';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(g);
+  }
+  return groups;
+}
+
+const TIER_INTROS = {
+  core: "Baseline milestones. What makes this character (or your account) feel realized.",
+  stretch: "Project-of-the-week goals. Give a play session direction without feeling like homework.",
+  legendary: "White whales. Some may take months or years. Marking one is a moment you remember."
+};
+
+function parseTimeString(s) {
+  // Accept formats: mm:ss, hh:mm:ss, or raw seconds
+  if (!s) return null;
+  s = s.trim();
+  if (!s) return null;
+  if (/^\d+$/.test(s)) return parseInt(s, 10);
+  const parts = s.split(':').map(x => parseInt(x, 10));
+  if (parts.some(isNaN)) return null;
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  return null;
+}
+function formatTime(totalSec) {
+  if (totalSec == null) return '—';
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  const mm = String(m).padStart(2, '0');
+  const ss = String(s).padStart(2, '0');
+  return h > 0 ? `${h}:${mm}:${ss}` : `${m}:${ss}`;
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render() {
+  renderContextBar();
+  renderFilterBar();
+  renderStats();
+  renderFeed();
+  renderTabs();
+  renderTier();
+  saveState();
+}
+
+function renderContextBar() {
+  const sel = document.getElementById('contextSelect');
+  let opts = '<option value="global">Global (account-wide)</option>';
+  for (const c of state.characters) {
+    opts += `<option value="${c.id}">${escapeHtml(c.name)} — ${c.class} / ${c.sectionId}</option>`;
+  }
+  sel.innerHTML = opts;
+  sel.value = state.activeContext;
+  document.getElementById('serverSelect').value = state.server;
+}
+
+function renderFilterBar() {
+  const bar = document.getElementById('filterBar');
+  let html = '<span class="label">Kinds</span>';
+  for (const k of KINDS) {
+    const on = state.kindFilters[k];
+    html += `<span class="chip ${on ? 'on' : ''}" data-kind="${k}" onclick="toggleKind('${k}')">${KIND_LABELS[k]}</span>`;
+  }
+  html += `<span style="flex:1"></span>`;
+  html += `<span class="chip ${state.seasonalShowPast ? 'on' : ''}" onclick="toggleSeasonalPast()">Show past events</span>`;
+  bar.innerHTML = html;
+}
+
+function renderStats() {
+  const tiers = ['core', 'stretch', 'legendary'];
+  let totalDone = 0, totalAll = 0;
+  let html = '';
+  for (const tier of tiers) {
+    const { done, total } = tierCounts(tier);
+    totalDone += done; totalAll += total;
+    const pct = total ? (done / total * 100) : 0;
+    const label = tier.charAt(0).toUpperCase() + tier.slice(1);
+    html += `<div class="stat-card ${tier}">
+      <div class="label">${label}</div>
+      <div class="value">${done}<span style="color:var(--text-dim);font-size:18px;font-weight:400">/${total}</span></div>
+      <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }
+  const totalPct = totalAll ? (totalDone / totalAll * 100) : 0;
+  html += `<div class="stat-card total">
+    <div class="label">Total</div>
+    <div class="value">${totalDone}<span style="color:var(--text-dim);font-size:18px;font-weight:400">/${totalAll}</span></div>
+    <div class="bar"><div class="bar-fill" style="width:${totalPct}%;background:var(--accent-2)"></div></div>
+  </div>`;
+  document.getElementById('stats').innerHTML = html;
+}
+
+function renderFeed() {
+  const entries = [];
+  for (const [key, a] of Object.entries(state.achievements)) {
+    if (!a?.achieved || !a.date) continue;
+    const [goalId, charId] = key.split('::');
+    const goal = allGoals().find(g => g.id === goalId);
+    if (!goal) continue;
+    let ctxLabel = 'Global';
+    if (charId) {
+      const c = state.characters.find(x => x.id === charId);
+      ctxLabel = c ? `${c.name} (${c.class})` : 'Unknown character';
+    }
+    entries.push({ tier: goal.tier, title: goal.title, date: a.date, note: a.note || '', ctx: ctxLabel, best: a.best, track: goal.track });
+  }
+  entries.sort((a, b) => b.date.localeCompare(a.date));
+  const recent = entries.slice(0, 8);
+  const feed = document.getElementById('feed');
+  if (recent.length === 0) {
+    feed.innerHTML = '<div class="feed-empty">No milestones logged yet. Mark your first one to start the log.</div>';
+    return;
+  }
+  feed.innerHTML = recent.map(e => `
+    <div class="feed-item">
+      <span class="feed-date">${e.date}</span>
+      <span class="feed-tier ${e.tier}">${e.tier}</span>
+      <strong>${escapeHtml(e.title)}</strong>
+      ${e.best != null && e.track === 'time' ? ` <span style="color:var(--kind-performance)">PB ${formatTime(e.best)}</span>` : ''}
+      <span class="feed-ctx">· ${escapeHtml(e.ctx)}</span>
+      ${e.note ? ` — <span style="color:var(--text-dim);font-style:italic">${escapeHtml(e.note)}</span>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderTabs() {
+  const tabs = [
+    { id: 'core', label: 'Core Path' },
+    { id: 'stretch', label: 'Stretch Goals' },
+    { id: 'legendary', label: 'Legendary' }
+  ];
+  document.getElementById('tabs').innerHTML = tabs.map(t => {
+    const { done, total } = tierCounts(t.id);
+    return `<button class="tab ${t.id === activeTier ? 'active' : ''}" onclick="setTier('${t.id}')">${t.label}<span class="count">${done}/${total}</span></button>`;
+  }).join('');
+}
+function setTier(tier) { activeTier = tier; render(); }
+
+function renderTier() {
+  const container = document.getElementById('tierContent');
+  if (state.activeContext !== 'global' && !getActiveCharacter()) {
+    container.innerHTML = `<div class="empty-state">
+      <h3>No character selected</h3>
+      <p>Add a character from the top-right menu to start tracking character goals.</p>
+      <button class="primary" onclick="openCharacterManager()">Manage Characters</button>
+    </div>`;
+    return;
+  }
+  const groups = goalsByCategory(activeTier);
+  let html = `<p class="tier-intro">${TIER_INTROS[activeTier]}</p>`;
+  const categoryKeys = Object.keys(groups).sort();
+  if (categoryKeys.length === 0) {
+    html += `<div class="empty-state"><h3>No ${activeTier} goals match your filters</h3><p>Try enabling more kinds above, switching context, or loosening the server filter.</p></div>`;
+  } else {
+    for (const category of categoryKeys) {
+      html += `<div class="category-section">
+        <div class="category-header">${escapeHtml(category)}</div>
+        <div class="goal-grid">${groups[category].map(renderGoal).join('')}</div>
+      </div>`;
+    }
+  }
+  html += renderAddGoalForm(activeTier);
+  container.innerHTML = html;
+}
+
+function renderGoal(g) {
+  const a = getAchievement(g);
+  const isAchieved = !!a.achieved;
+  const isCustom = state.customGoals.some(cg => cg.id === g.id);
+  const dateVal = a.date || new Date().toISOString().slice(0, 10);
+  const noteVal = a.note || '';
+  const kind = g.kind || 'progression';
+  const season = g.kind === 'seasonal' ? seasonalStatus(g) : null;
+  const isRepeatable = !!g.repeatable;
+
+  const tags = [];
+  tags.push(`<span class="kind-${kind}">${KIND_LABELS[kind]}</span>`);
+  if (g.server && g.server !== 'any') tags.push(`<span>${g.server}</span>`);
+  if (Array.isArray(g.classes) && g.classes.length < 12) tags.push(`<span>${g.classes.length} class${g.classes.length === 1 ? '' : 'es'}</span>`);
+  if (g.eventDates?.label) tags.push(`<span>${escapeHtml(g.eventDates.label)}</span>`);
+  if (season === 'active') tags.push(`<span class="status-active">ACTIVE NOW</span>`);
+  else if (season === 'upcoming') tags.push(`<span class="status-upcoming">upcoming</span>`);
+  else if (season === 'past') tags.push(`<span class="status-past">not this month</span>`);
+
+  let cardClass = 'goal-card';
+  if (isAchieved) cardClass += ' achieved';
+  if (season === 'active') cardClass += ' season-active';
+  if (season === 'past') cardClass += ' season-past';
+
+  let statsBlock = '';
+  if (isRepeatable && (a.count || a.best != null)) {
+    statsBlock = `<div class="goal-stats">
+      <span>Attempts: <strong>${a.count || 0}</strong></span>
+      ${a.best != null ? `<span>Best: <strong>${g.track === 'time' ? formatTime(a.best) : a.best}</strong></span>` : ''}
+      ${a.bestDate ? `<span style="opacity:0.7">on ${a.bestDate}</span>` : ''}
+    </div>`;
+  }
+
+  const hasHowto = !!(g.strategy || g.wiki || (g.requires && g.requires.length));
+  let howtoBlock = '';
+  if (hasHowto) {
+    let prereqHtml = '';
+    if (g.requires && g.requires.length) {
+      const items = g.requires.map(rid => {
+        const req = allGoals().find(x => x.id === rid);
+        if (!req) return '';
+        const done = isPrereqDone(rid);
+        return `<li>
+          <span class="prereq-check ${done ? 'done' : 'pending'}">${done ? '\u2713' : ''}</span>
+          <span class="prereq-link ${done ? 'done' : ''}" onclick="scrollToGoal('${rid}')">${escapeHtml(req.title)}</span>
+        </li>`;
+      }).join('');
+      prereqHtml = `<div class="goal-howto-section">
+        <div class="goal-howto-label">Prerequisites</div>
+        <ul class="prereq-list">${items}</ul>
+      </div>`;
+    }
+    howtoBlock = `<div class="goal-howto-toggle" id="howto-toggle-${g.id}" onclick="toggleHowto('${g.id}')"></div>
+      <div class="goal-howto" id="howto-${g.id}">
+        ${g.strategy ? `<div class="goal-howto-section"><div class="goal-howto-label">Strategy</div><div class="goal-howto-strategy">${escapeHtml(g.strategy)}</div></div>` : ''}
+        ${prereqHtml}
+        ${g.wiki ? `<div class="goal-howto-section"><a href="${escapeHtml(g.wiki)}" target="_blank" rel="noopener">Open on Ephinea wiki &rarr;</a></div>` : ''}
+      </div>`;
+  }
+
+  let checkOrLog;
+  if (isRepeatable) {
+    checkOrLog = `<div class="goal-check" onclick="toggleAchieved('${g.id}')" title="Mark complete at least once"></div>`;
+  } else {
+    checkOrLog = `<div class="goal-check" onclick="toggleAchieved('${g.id}')"></div>`;
+  }
+
+  return `
+    <div class="${cardClass}" id="card-${g.id}">
+      <div class="goal-header">
+        ${checkOrLog}
+        <div class="goal-body">
+          <div class="goal-title">${escapeHtml(g.title)}${isCustom ? '<span class="custom-badge">custom</span>' : ''}</div>
+          <div class="goal-desc">${escapeHtml(g.desc || '')}</div>
+          <div class="goal-tags">${tags.join('')}</div>
+          ${statsBlock}
+          ${a.note ? `<div class="goal-note">${escapeHtml(a.note)}</div>` : ''}
+          ${howtoBlock}
+          <div class="goal-meta">
+            <span>${a.date ? 'Achieved ' + a.date : '&nbsp;'}</span>
+            <span style="display:flex;gap:10px;align-items:center">
+              ${isRepeatable ? `<button class="log-attempt-btn" onclick="openLogModal('${g.id}')">Log attempt</button>` : ''}
+              <span class="goal-actions" onclick="toggleEdit('${g.id}')">${isAchieved ? 'edit note' : 'add details'}</span>
+            </span>
+          </div>
+          <div class="goal-edit" id="edit-${g.id}">
+            <input type="date" id="date-${g.id}" value="${dateVal}">
+            <textarea id="note-${g.id}" placeholder="Drop details, party, memorable moment...">${escapeHtml(noteVal)}</textarea>
+            <div class="edit-actions">
+              <button class="primary" onclick="saveDetails('${g.id}')">Save</button>
+              <button onclick="toggleEdit('${g.id}')">Cancel</button>
+              ${isCustom ? `<button class="danger" onclick="deleteCustom('${g.id}')" style="margin-left:auto">Delete goal</button>` : ''}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderAddGoalForm(tier) {
+  const scope = state.activeContext === 'global' ? 'global' : 'character';
+  const kindOpts = KINDS.map(k => `<option value="${k}">${KIND_LABELS[k]}</option>`).join('');
+  return `<div class="add-goal">
+    <h4>Add a custom ${scope} ${tier} goal (saves only for you, not shared)</h4>
+    <div class="add-goal-row">
+      <select id="new-kind">${kindOpts}</select>
+      <input id="new-cat" placeholder="Category">
+      <input id="new-title" placeholder="Goal title">
+      <input id="new-desc" placeholder="Description (optional)">
+      <button class="primary" onclick="addCustomGoal()">Add</button>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// ACTIONS
+// ============================================================
+function setContext(ctx) { state.activeContext = ctx; render(); }
+function setServer(s) { state.server = s; render(); }
+function toggleKind(k) { state.kindFilters[k] = !state.kindFilters[k]; render(); }
+function toggleSeasonalPast() { state.seasonalShowPast = !state.seasonalShowPast; render(); }
+
+function toggleAchieved(goalId) {
+  const goal = allGoals().find(g => g.id === goalId);
+  if (!goal) return;
+  const key = achievementKey(goal);
+  const cur = state.achievements[key] || {};
+  const wasAchieved = !!cur.achieved;
+  if (wasAchieved) {
+    state.achievements[key] = { achieved: false };
+  } else {
+    state.achievements[key] = {
+      achieved: true,
+      date: cur.date || new Date().toISOString().slice(0, 10),
+      note: cur.note || '',
+      ...(goal.repeatable ? { count: cur.count || 1, best: cur.best, bestDate: cur.bestDate } : {})
+    };
+  }
+  render();
+  if (!wasAchieved) {
+    requestAnimationFrame(() => triggerAchieveEffect(goalId, goal.tier));
+  }
+}
+function toggleEdit(id) {
+  const el = document.getElementById('edit-' + id);
+  if (el) el.classList.toggle('open');
+}
+function saveDetails(goalId) {
+  const goal = allGoals().find(g => g.id === goalId);
+  if (!goal) return;
+  const key = achievementKey(goal);
+  const date = document.getElementById('date-' + goalId).value;
+  const note = document.getElementById('note-' + goalId).value;
+  const cur = state.achievements[key] || {};
+  state.achievements[key] = { ...cur, achieved: cur.achieved !== false, date, note };
+  toggleEdit(goalId);
+  render();
+}
+
+// ========= Log Attempt (repeatable PB goals) =========
+function openLogModal(goalId) {
+  const goal = allGoals().find(g => g.id === goalId);
+  if (!goal) return;
+  pendingLogGoalId = goalId;
+  document.getElementById('logModalTitle').textContent = 'Log attempt: ' + goal.title;
+  document.getElementById('logDate').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('logTime').value = '';
+  document.getElementById('logNote').value = '';
+  document.getElementById('logTimeField').style.display = goal.track === 'time' ? 'block' : 'none';
+  document.getElementById('logModal').classList.add('open');
+}
+function closeLogModal() {
+  document.getElementById('logModal').classList.remove('open');
+  pendingLogGoalId = null;
+}
+function saveAttempt() {
+  if (!pendingLogGoalId) return;
+  const goal = allGoals().find(g => g.id === pendingLogGoalId);
+  if (!goal) { closeLogModal(); return; }
+  const key = achievementKey(goal);
+  const cur = state.achievements[key] || {};
+  const date = document.getElementById('logDate').value;
+  const note = document.getElementById('logNote').value.trim();
+  let best = cur.best;
+  let bestDate = cur.bestDate;
+  let attemptVal = null;
+  if (goal.track === 'time') {
+    attemptVal = parseTimeString(document.getElementById('logTime').value);
+    if (attemptVal == null) { alert('Enter a time like 14:32 or 1:02:45'); return; }
+    if (best == null || attemptVal < best) { best = attemptVal; bestDate = date; }
+  }
+  const newCount = (cur.count || 0) + 1;
+  const firstDate = cur.date || date;
+  state.achievements[key] = {
+    achieved: true, date: firstDate, note: note || cur.note || '',
+    count: newCount, best, bestDate
+  };
+  closeLogModal();
+  render();
+  requestAnimationFrame(() => triggerAchieveEffect(goal.id, goal.tier));
+}
+
+// ========= Custom goals =========
+function addCustomGoal() {
+  const cat = document.getElementById('new-cat').value.trim() || 'Custom';
+  const title = document.getElementById('new-title').value.trim();
+  const desc = document.getElementById('new-desc').value.trim();
+  const kind = document.getElementById('new-kind').value || 'progression';
+  if (!title) { alert('Title required'); return; }
+  const scope = state.activeContext === 'global' ? 'global' : 'character';
+  const char = getActiveCharacter();
+  const classes = scope === 'character' && char ? [char.class] : 'all';
+  const id = 'custom-' + Date.now();
+  state.customGoals.push({ id, scope, kind, tier: activeTier, category: cat, title, desc, classes, server: 'any' });
+  render();
+}
+function deleteCustom(id) {
+  if (!confirm('Delete this custom goal? Achievement record will also be removed.')) return;
+  state.customGoals = state.customGoals.filter(g => g.id !== id);
+  for (const key of Object.keys(state.achievements)) {
+    if (key === id || key.startsWith(id + '::')) delete state.achievements[key];
+  }
+  render();
+}
+
+// ========= Character management =========
+function openCharacterManager() {
+  const modal = document.getElementById('charModal');
+  document.getElementById('newCharClass').innerHTML = CLASSES.map(c => `<option>${c}</option>`).join('');
+  document.getElementById('newCharSectionId').innerHTML = SECTION_IDS.map(s => `<option>${s}</option>`).join('');
+  const list = document.getElementById('charList');
+  if (state.characters.length === 0) {
+    list.innerHTML = '<li style="justify-content:center;color:var(--text-dim);font-style:italic">No characters yet.</li>';
+  } else {
+    list.innerHTML = state.characters.map(c => `
+      <li>
+        <div>
+          <strong>${escapeHtml(c.name)}</strong>
+          <div class="meta">${c.class} · ${c.sectionId} · added ${c.createdAt}</div>
+        </div>
+        <button class="danger" onclick="deleteCharacter('${c.id}')">Delete</button>
+      </li>`).join('');
+  }
+  modal.classList.add('open');
+}
+function closeCharacterManager() { document.getElementById('charModal').classList.remove('open'); }
+function addCharacter() {
+  const name = document.getElementById('newCharName').value.trim();
+  if (!name) { alert('Name required'); return; }
+  const char = {
+    id: 'ch-' + Date.now(), name,
+    class: document.getElementById('newCharClass').value,
+    sectionId: document.getElementById('newCharSectionId').value,
+    createdAt: new Date().toISOString().slice(0, 10)
+  };
+  state.characters.push(char);
+  state.activeContext = char.id;
+  document.getElementById('newCharName').value = '';
+  closeCharacterManager();
+  render();
+}
+function deleteCharacter(id) {
+  if (!confirm('Delete this character? All their achievements will be lost.')) return;
+  state.characters = state.characters.filter(c => c.id !== id);
+  for (const key of Object.keys(state.achievements)) {
+    if (key.endsWith('::' + id)) delete state.achievements[key];
+  }
+  if (state.activeContext === id) state.activeContext = 'global';
+  openCharacterManager();
+  render();
+}
+
+// ========= Import / Export / Reset =========
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'psobb-journey-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!confirm('Replace your current journey log with the imported one?')) return;
+      state = {
+        schemaVersion: 3,
+        characters: data.characters || [],
+        activeContext: data.activeContext || 'global',
+        server: data.server || 'ephinea',
+        achievements: data.achievements || {},
+        customGoals: data.customGoals || [],
+        kindFilters: data.kindFilters || { ...DEFAULT_KIND_FILTERS },
+        seasonalShowPast: data.seasonalShowPast || false
+      };
+      render();
+    } catch (err) { alert('Invalid JSON file'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+function resetAll() {
+  if (!confirm('Wipe all journey data and characters? Cannot be undone.')) return;
+  state = {
+    schemaVersion: 3, characters: [], activeContext: 'global', server: 'ephinea',
+    achievements: {}, customGoals: [], kindFilters: { ...DEFAULT_KIND_FILTERS }, seasonalShowPast: false
+  };
+  render();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ============================================================
+// PSO ACHIEVEMENT EFFECT
+// ============================================================
+let soundEnabled = false;
+let audioCtx = null;
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('soundBtn');
+  if (btn) btn.textContent = 'Sound: ' + (soundEnabled ? 'on' : 'off');
+  if (soundEnabled) playChime('core');
+}
+function playChime(tier) {
+  if (!soundEnabled) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const NOTES = {
+      core:      [[784.00, 0]],
+      stretch:   [[784.00, 0], [987.77, 0.08]],
+      legendary: [[523.25, 0], [659.25, 0.10], [783.99, 0.20], [1046.50, 0.30]]
+    };
+    const seq = NOTES[tier] || NOTES.core;
+    const now = audioCtx.currentTime;
+    for (const [freq, delay] of seq) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      const start = now + delay;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.14, start + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.55);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(start);
+      osc.stop(start + 0.6);
+    }
+  } catch (e) {}
+}
+function triggerAchieveEffect(goalId, tier) {
+  const card = document.getElementById('card-' + goalId);
+  if (!card) return;
+  const anchor = card.querySelector('.goal-check') || card;
+  const rect = anchor.getBoundingClientRect();
+  const originX = rect.left + rect.width / 2;
+  const originY = rect.top + rect.height / 2;
+  const pulseClass = 'just-achieved-' + tier;
+  card.classList.add(pulseClass);
+  setTimeout(() => card.classList.remove(pulseClass), 1200);
+  const PALETTES = {
+    core:      ['#58e6ff', '#7feaff', '#a0efff', '#ffffff'],
+    stretch:   ['#6ee7a7', '#a5f3cc', '#56c896', '#c6f5dd', '#ffffff'],
+    legendary: ['#ffb454', '#ff8ae8', '#c9a4ff', '#58e6ff', '#6ee7a7', '#ffffff']
+  };
+  const COUNT = { core: 10, stretch: 14, legendary: 24 };
+  const DIST  = { core: 60, stretch: 80, legendary: 110 };
+  const palette = PALETTES[tier] || PALETTES.core;
+  const count = COUNT[tier] || 10;
+  const dist = DIST[tier] || 60;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'pso-particle';
+    const angle = (Math.PI * 2 * i / count) + (Math.random() - 0.5) * 0.35;
+    const d = dist + Math.random() * 35;
+    const color = palette[i % palette.length];
+    p.style.left = originX + 'px';
+    p.style.top = originY + 'px';
+    p.style.background = color;
+    p.style.boxShadow = '0 0 10px ' + color;
+    p.style.setProperty('--dx', Math.cos(angle) * d + 'px');
+    p.style.setProperty('--dy', Math.sin(angle) * d + 'px');
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 900);
+  }
+  if (tier === 'legendary') {
+    const ring = document.createElement('div');
+    ring.className = 'pso-ring';
+    ring.style.left = (originX - 15) + 'px';
+    ring.style.top  = (originY - 15) + 'px';
+    document.body.appendChild(ring);
+    setTimeout(() => ring.remove(), 1000);
+    const text = document.createElement('div');
+    text.className = 'pso-rare-text';
+    text.textContent = 'RARE DROP!';
+    text.style.left = originX + 'px';
+    text.style.top  = originY + 'px';
+    document.body.appendChild(text);
+    setTimeout(() => text.remove(), 1600);
+  }
+  playChime(tier);
+}
+
+document.getElementById('charModal').addEventListener('click', e => {
+  if (e.target.id === 'charModal') closeCharacterManager();
+});
+document.getElementById('logModal').addEventListener('click', e => {
+  if (e.target.id === 'logModal') closeLogModal();
+});
+
+loadState();
+render();
+</script>
+</body>
+</html>

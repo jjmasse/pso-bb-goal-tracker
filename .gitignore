@@ -1,0 +1,15 @@
+# Exports / personal backups
+psobb-journey-*.json
+*.bak
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Node (in case tooling is ever added)
+node_modules/
+npm-debug.log*
+yarn-error.log*
