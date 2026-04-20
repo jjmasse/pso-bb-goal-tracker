@@ -6,7 +6,7 @@ A single-file, offline-first goal tracker for **Phantasy Star Online Blue Burst*
 
 ## Try it live
 
-**[→ Open the demo](https://YOUR-GITHUB-USERNAME.github.io/pso-bb-goal-tracker/)**
+**[→ Open the demo](https://jjmasse.github.io/pso-bb-goal-tracker/)**
 
 The demo runs entirely in your browser. Your data stays in your browser's `localStorage` — nothing is sent anywhere, and no one else can see your progress. Use the demo to kick the tires. For real long-term tracking, fork or download and run `index.html` locally — that way your log survives a repo move and isn't tied to the hosted URL.
 
