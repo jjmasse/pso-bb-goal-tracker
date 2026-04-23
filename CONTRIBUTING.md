@@ -58,9 +58,8 @@ The `kind` field groups goals by what _kind_ of play they reward. The UI has a k
 | `challenge`   | Self-imposed constraint runs                                              | "No-mag VH clear", "Solo Ult Falz at Lv100-" |
 | `seasonal`    | Events that only run during certain months                               | "Participate in the Anniversary Event"       |
 | `collection`  | Gotta-catch-em-all sets — all elements, all bosses, all rappies, all IDs | "Evolve 3 distinct rare mags"                |
-| `social`      | Team, community, mentorship                                              | "Fill your Team to 10 members"               |
 | `performance` | Speedruns, personal bests, re-runnable skill tests                        | "Towards the Future PB"                      |
-| `meta`        | About using the tracker itself                                           | "Log 50 milestones"                          |
+| `meta`        | About using the tracker itself, team, community, mentorship             | "Log 50 milestones", "Fill your Team to 10" |
 
 Default: if you truly can't decide, `progression` is the safest bet, but try to place it more specifically.
 

@@ -24,7 +24,6 @@
     --kind-challenge: #ff8a8a;
     --kind-seasonal: #ffb454;
     --kind-collection: #c9a4ff;
-    --kind-social: #6ee7a7;
     --kind-performance: #ff8ae8;
     --kind-meta: #c6f5dd;
   }
@@ -94,7 +93,6 @@
   .chip[data-kind="challenge"].on    { color: var(--kind-challenge); }
   .chip[data-kind="seasonal"].on     { color: var(--kind-seasonal); }
   .chip[data-kind="collection"].on   { color: var(--kind-collection); }
-  .chip[data-kind="social"].on       { color: var(--kind-social); }
   .chip[data-kind="performance"].on  { color: var(--kind-performance); }
   .chip[data-kind="meta"].on         { color: var(--kind-meta); }
   .chip:hover { color: var(--text); }
@@ -177,7 +175,6 @@
   .goal-tags span.kind-challenge { color: var(--kind-challenge); }
   .goal-tags span.kind-seasonal { color: var(--kind-seasonal); }
   .goal-tags span.kind-collection { color: var(--kind-collection); }
-  .goal-tags span.kind-social { color: var(--kind-social); }
   .goal-tags span.kind-performance { color: var(--kind-performance); }
   .goal-tags span.kind-meta { color: var(--kind-meta); }
   .goal-tags span.status-active { color: var(--kind-seasonal); background: rgba(255,180,84,0.15); font-weight: 700; }
@@ -717,10 +714,10 @@ const RANGERS = ['RAmar','RAmarl','RAcast','RAcaseal'];
 const FORCES  = ['FOmar','FOmarl','FOnewm','FOnewearl'];
 const TECH_CAPABLE = [...FORCES, 'HUmar','HUnewearl','RAmar','RAmarl'];
 
-const KINDS = ['progression', 'challenge', 'seasonal', 'collection', 'social', 'performance', 'meta'];
+const KINDS = ['progression', 'challenge', 'seasonal', 'collection', 'performance', 'meta'];
 const KIND_LABELS = {
   progression: 'Progression', challenge: 'Challenge', seasonal: 'Seasonal',
-  collection: 'Collection', social: 'Social', performance: 'Performance', meta: 'Meta'
+  collection: 'Collection', performance: 'Performance', meta: 'Meta'
 };
 
 // ============================================================
@@ -747,19 +744,19 @@ const GOALS_DATA = [
   { id: 'g-own-god-set', scope: 'global', kind: 'collection', tier: 'stretch', category: 'Collection', title: 'Own a full God unit set', desc: 'God/Arm, Body, Shot, HP, Power, Mind, Ability, Technique, Battle, Legs.', server: 'any' },
   { id: 'g-own-heart-chao', scope: 'global', kind: 'collection', tier: 'stretch', category: 'Collection', title: 'Own a Heart of Chao', desc: 'Rare mag cell. Evolves specific mags.', server: 'any' },
 
-  // ===== GLOBAL — SOCIAL / TEAM =====
-  { id: 'g-team-10',     scope: 'global', kind: 'social', tier: 'core',    category: 'Team', title: 'Fill your Team to 10 members', desc: 'Ephinea starts teams at 10-member cap.', server: 'ephinea' },
-  { id: 'g-team-flag',   scope: 'global', kind: 'social', tier: 'stretch', category: 'Team', title: 'Unlock a Team Flag', desc: 'Costs team points. Design one.', server: 'ephinea' },
-  { id: 'g-team-dress',  scope: 'global', kind: 'social', tier: 'stretch', category: 'Team', title: 'Unlock the Dressing Room', desc: 'Team-wide outfit changer.', server: 'ephinea' },
-  { id: 'g-team-25',     scope: 'global', kind: 'social', tier: 'stretch', category: 'Team', title: 'Grow your Team to 25 members', desc: 'Requires team-point unlocks to expand slots.', server: 'ephinea' },
-  { id: 'g-team-50',     scope: 'global', kind: 'social', tier: 'legendary', category: 'Team', title: 'Grow your Team to 50 members', desc: 'A real guild by now.', server: 'ephinea' },
-  { id: 'g-team-pts-100',scope: 'global', kind: 'social', tier: 'stretch', category: 'Team', title: 'Contribute 100 team points', desc: 'Donate rares (9★=1pt, 10★=10pt tiers).', server: 'ephinea' },
-  { id: 'g-team-pts-1k', scope: 'global', kind: 'social', tier: 'legendary', category: 'Team', title: 'Contribute 1,000 team points', desc: 'Serious donation milestone.', server: 'ephinea' },
-  { id: 'g-team-ult',    scope: 'global', kind: 'social', tier: 'stretch', category: 'Team', title: 'Clear Ultimate content with a full Team party', desc: 'All four slots filled by teammates.', server: 'any' },
-  { id: 'g-carry',       scope: 'global', kind: 'social', tier: 'stretch', category: 'Team', title: 'Carry a teammate through their first Ultimate clear', desc: 'Pay it forward.', server: 'any' },
-  { id: 'g-mentor',      scope: 'global', kind: 'social', tier: 'stretch', category: 'Community', title: 'Teach 3 new players something specific', desc: 'Tech routing, drop mechanics, party combos — whatever. Teaching solidifies skill.', server: 'any' },
-  { id: 'g-wiki',        scope: 'global', kind: 'social', tier: 'stretch', category: 'Community', title: 'Contribute to a community resource', desc: 'Wiki edit, drop-sheet entry, guide post, highlight clip.', server: 'any' },
-  { id: 'g-host-event',  scope: 'global', kind: 'social', tier: 'stretch', category: 'Community', title: 'Host a Team or public event run', desc: 'Lead a scheduled group activity.', server: 'any' },
+  // ===== GLOBAL — TEAM / COMMUNITY (meta) =====
+  { id: 'g-team-10',     scope: 'global', kind: 'meta', tier: 'core',    category: 'Team', title: 'Fill your Team to 10 members', desc: 'Ephinea starts teams at 10-member cap.', server: 'ephinea' },
+  { id: 'g-team-flag',   scope: 'global', kind: 'meta', tier: 'stretch', category: 'Team', title: 'Unlock a Team Flag', desc: 'Costs team points. Design one.', server: 'ephinea' },
+  { id: 'g-team-dress',  scope: 'global', kind: 'meta', tier: 'stretch', category: 'Team', title: 'Unlock the Dressing Room', desc: 'Team-wide outfit changer.', server: 'ephinea' },
+  { id: 'g-team-25',     scope: 'global', kind: 'meta', tier: 'stretch', category: 'Team', title: 'Grow your Team to 25 members', desc: 'Requires team-point unlocks to expand slots.', server: 'ephinea' },
+  { id: 'g-team-50',     scope: 'global', kind: 'meta', tier: 'legendary', category: 'Team', title: 'Grow your Team to 50 members', desc: 'A real guild by now.', server: 'ephinea' },
+  { id: 'g-team-pts-100',scope: 'global', kind: 'meta', tier: 'stretch', category: 'Team', title: 'Contribute 100 team points', desc: 'Donate rares (9★=1pt, 10★=10pt tiers).', server: 'ephinea' },
+  { id: 'g-team-pts-1k', scope: 'global', kind: 'meta', tier: 'legendary', category: 'Team', title: 'Contribute 1,000 team points', desc: 'Serious donation milestone.', server: 'ephinea' },
+  { id: 'g-team-ult',    scope: 'global', kind: 'meta', tier: 'stretch', category: 'Team', title: 'Clear Ultimate content with a full Team party', desc: 'All four slots filled by teammates.', server: 'any' },
+  { id: 'g-carry',       scope: 'global', kind: 'meta', tier: 'stretch', category: 'Team', title: 'Carry a teammate through their first Ultimate clear', desc: 'Pay it forward.', server: 'any' },
+  { id: 'g-mentor',      scope: 'global', kind: 'meta', tier: 'stretch', category: 'Community', title: 'Teach 3 new players something specific', desc: 'Tech routing, drop mechanics, party combos — whatever. Teaching solidifies skill.', server: 'any' },
+  { id: 'g-wiki',        scope: 'global', kind: 'meta', tier: 'stretch', category: 'Community', title: 'Contribute to a community resource', desc: 'Wiki edit, drop-sheet entry, guide post, highlight clip.', server: 'any' },
+  { id: 'g-host-event',  scope: 'global', kind: 'meta', tier: 'stretch', category: 'Community', title: 'Host a Team or public event run', desc: 'Lead a scheduled group activity.', server: 'any' },
 
   // ===== GLOBAL — SEASONAL (Ephinea) =====
   { id: 'g-event-valentine',   scope: 'global', kind: 'seasonal', tier: 'core',    category: 'Events', title: 'Participate in Valentine\'s Event', desc: 'Two-week event in mid-February.', server: 'ephinea', eventDates: { months: [2], label: 'February', recurring: true } },
@@ -1074,7 +1071,7 @@ function withStrategy(g) {
 // STATE
 // ============================================================
 const STORAGE_KEY = 'psobb-journey-log-v2';
-const DEFAULT_KIND_FILTERS = { progression: true, challenge: true, seasonal: true, collection: true, social: true, performance: true, meta: true };
+const DEFAULT_KIND_FILTERS = { progression: true, challenge: true, seasonal: true, collection: true, performance: true, meta: true };
 let state = {
   schemaVersion: 3,
   characters: [],
@@ -1103,6 +1100,10 @@ function loadState() {
         kindFilters: p.kindFilters || { ...DEFAULT_KIND_FILTERS },
         seasonalShowPast: p.seasonalShowPast || false
       };
+      // Migration: remove obsolete 'social' kind filter from v3 saves
+      if (state.kindFilters.social !== undefined) {
+        delete state.kindFilters.social;
+      }
     }
   } catch (e) { console.warn('Could not load:', e); }
 }
