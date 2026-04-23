@@ -1279,7 +1279,12 @@ function getAllCategories() {
   state.customGoals.forEach(g => {
     if (g.category) categories.add(g.category);
   });
-  return Array.from(categories).sort();
+
+  // Filter out categories that overlap with Kind names to avoid confusion
+  const kindNames = KINDS.map(k => k.toLowerCase());
+  return Array.from(categories)
+    .filter(cat => !kindNames.includes(cat.toLowerCase()))
+    .sort();
 }
 
 function getActiveCharacter() {
