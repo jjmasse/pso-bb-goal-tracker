@@ -1796,7 +1796,7 @@ function handleGoalSubmit() {
   state.customGoals.push(newGoal);
   saveState();
   closeGoalModal();
-  render();
+  setTier(tier);
 
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
