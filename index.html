@@ -1320,7 +1320,13 @@ function serverApplies(goal) {
 function kindApplies(goal) {
   return state.kindFilters[goal.kind || 'progression'] !== false;
 }
-function allGoals() { return [...GOALS_DATA, ...state.customGoals].map(withStrategy); }
+function allGoals() {
+  // TODO REQ-040: Enable catalog goals once Achievement Catalog is implemented
+  // For now, only show custom goals to avoid confusion (counts showing invisible goals)
+  const CATALOG_ENABLED = false;
+  const goals = CATALOG_ENABLED ? [...GOALS_DATA, ...state.customGoals] : state.customGoals;
+  return goals.map(withStrategy);
+}
 
 function isFirstTimeUser() {
   // Development mode: Show empty state for testing feedback
