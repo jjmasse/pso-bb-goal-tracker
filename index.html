@@ -1190,9 +1190,10 @@ function kindApplies(goal) {
 function allGoals() { return [...GOALS_DATA, ...state.customGoals].map(withStrategy); }
 
 function isFirstTimeUser() {
+  // Development mode: Show empty state for testing feedback
+  // Only check for custom goals and catalog selections (ignore achievements)
   return state.customGoals.length === 0 &&
-         (state.catalogSelections || []).length === 0 &&
-         Object.keys(state.achievements).length === 0;
+         (state.catalogSelections || []).length === 0;
 }
 
 function isPrereqDone(prereqId) {
