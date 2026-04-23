@@ -1915,14 +1915,27 @@ function selectClassFamily(family) {
     'ALL': CLASSES
   };
 
-  const classesToSelect = familyMap[family] || [];
+  const classesToToggle = familyMap[family] || [];
 
-  // Add all classes from the family to selectedClasses (avoiding duplicates)
-  classesToSelect.forEach(cls => {
-    if (!selectedClasses.includes(cls)) {
-      selectedClasses.push(cls);
-    }
-  });
+  // Check if all classes in this family are already selected
+  const allSelected = classesToToggle.every(cls => selectedClasses.includes(cls));
+
+  if (allSelected) {
+    // If all are selected, deselect them (toggle off)
+    classesToToggle.forEach(cls => {
+      const idx = selectedClasses.indexOf(cls);
+      if (idx >= 0) {
+        selectedClasses.splice(idx, 1);
+      }
+    });
+  } else {
+    // If not all are selected, select all of them (toggle on)
+    classesToToggle.forEach(cls => {
+      if (!selectedClasses.includes(cls)) {
+        selectedClasses.push(cls);
+      }
+    });
+  }
 
   // Re-render the class grid to show updated selections
   updateClassSelector();
