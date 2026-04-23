@@ -281,6 +281,17 @@
   .modal-field textarea { resize: vertical; min-height: 60px; }
   .modal-field .helper { font-size: 11px; color: var(--text-dim); margin-top: 4px; font-style: italic; }
   .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .class-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px;
+  }
+  .class-chip {
+    padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line);
+    background: var(--bg-0); color: var(--text-dim); font-size: 12px;
+    cursor: pointer; text-align: center; user-select: none; transition: all 0.15s;
+  }
+  .class-chip:hover { border-color: var(--accent); color: var(--text); }
+  .class-chip.selected { border-color: var(--accent); color: var(--accent); background: var(--bg-2); }
+  .field-error { font-size: 11px; color: var(--danger); margin-top: 4px; }
   .char-list { margin: 0; padding: 0; list-style: none; }
   .char-list li {
     display: flex; justify-content: space-between; align-items: center;
@@ -669,6 +680,7 @@
     <div class="subtitle">Multi-character goals &amp; milestones for Phantasy Star Online Blue Burst</div>
   </div>
   <div class="header-actions">
+    <button class="primary" onclick="openGoalModal()">+ New Goal</button>
     <button onclick="openCharacterManager()">Manage Characters</button>
     <button id="soundBtn" onclick="toggleSound()">Sound: off</button>
     <button onclick="exportData()">Export</button>
@@ -746,6 +758,70 @@
     <div class="modal-actions">
       <button onclick="closeLogModal()">Cancel</button>
       <button class="primary" onclick="saveAttempt()">Log Attempt</button>
+    </div>
+  </div>
+</div>
+
+<!-- Goal Creation Modal -->
+<div class="modal-backdrop" id="goalModal">
+  <div class="modal">
+    <h2>Create Custom Goal</h2>
+    <div class="modal-field">
+      <label>Title *</label>
+      <input type="text" id="goalTitle" placeholder="e.g. Unlock Spread Needle" oninput="document.getElementById('goalTitleError').style.display='none'">
+      <div class="field-error" id="goalTitleError" style="display:none;"></div>
+    </div>
+    <div class="modal-field">
+      <label>Description</label>
+      <textarea id="goalDesc" placeholder="Optional details about this goal..."></textarea>
+    </div>
+    <div class="modal-field">
+      <label>Kind</label>
+      <select id="goalKind">
+        <option value="progression">Progression</option>
+        <option value="challenge">Challenge</option>
+        <option value="seasonal">Seasonal</option>
+        <option value="collection">Collection</option>
+        <option value="performance">Performance</option>
+        <option value="meta">Meta</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Tier</label>
+      <select id="goalTier">
+        <option value="core">Core - baseline milestones</option>
+        <option value="stretch">Stretch - project-of-the-week goals</option>
+        <option value="legendary">Legendary - white whale achievements</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Scope</label>
+      <select id="goalScope" onchange="updateClassSelector()">
+        <option value="global">Global (account-wide)</option>
+        <option value="character">Character (class-specific)</option>
+      </select>
+    </div>
+    <div class="modal-field" id="classField" style="display:none;">
+      <label>Classes</label>
+      <div class="class-grid" id="classGrid"></div>
+      <div class="helper">Select which classes this goal applies to. Leave empty for all classes.</div>
+    </div>
+    <div class="modal-field">
+      <label>Category</label>
+      <input type="text" id="goalCategory" placeholder="e.g. Hunts, Progression, etc." value="">
+    </div>
+    <div class="modal-field">
+      <label>Server</label>
+      <select id="goalServer">
+        <option value="any">Any server</option>
+        <option value="ephinea">Ephinea</option>
+        <option value="schtserv">Schthack</option>
+        <option value="ultima">Ultima</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button onclick="closeGoalModal()">Cancel</button>
+      <button class="primary" onclick="handleGoalSubmit()">Create Goal</button>
     </div>
   </div>
 </div>
@@ -1407,7 +1483,7 @@ function renderTier() {
       <h2>Track Your PSO BB Journey Your Way</h2>
       <p>Create custom goals for the items you're hunting, techniques you're learning, or milestones you're chasing.</p>
       <div class="empty-state-actions">
-        <button class="primary" onclick="alert('Goal creation modal coming soon in REQ-044!')">
+        <button class="primary" onclick="openGoalModal()">
           + Create Your First Goal
         </button>
         <button onclick="alert('Achievement Catalog coming soon in REQ-040!')">
@@ -1618,6 +1694,117 @@ function closeLogModal() {
   document.getElementById('logModal').classList.remove('open');
   pendingLogGoalId = null;
 }
+
+// ========= Goal Creation Modal =========
+let selectedClasses = [];
+
+function openGoalModal() {
+  selectedClasses = [];
+  document.getElementById('goalTitle').value = '';
+  document.getElementById('goalDesc').value = '';
+  document.getElementById('goalKind').value = 'progression';
+  document.getElementById('goalTier').value = 'core';
+  document.getElementById('goalScope').value = 'global';
+  document.getElementById('goalCategory').value = '';
+  document.getElementById('goalServer').value = 'any';
+  document.getElementById('goalTitleError').style.display = 'none';
+  updateClassSelector();
+  document.getElementById('goalModal').classList.add('open');
+}
+
+function closeGoalModal() {
+  document.getElementById('goalModal').classList.remove('open');
+  selectedClasses = [];
+}
+
+function updateClassSelector() {
+  const scope = document.getElementById('goalScope').value;
+  const classField = document.getElementById('classField');
+  const classGrid = document.getElementById('classGrid');
+
+  if (scope === 'character') {
+    classField.style.display = 'block';
+    classGrid.innerHTML = CLASSES.map(cls => {
+      const isSelected = selectedClasses.includes(cls);
+      return `<div class="class-chip ${isSelected ? 'selected' : ''}" onclick="toggleClass('${cls}')">${cls}</div>`;
+    }).join('');
+  } else {
+    classField.style.display = 'none';
+    selectedClasses = [];
+  }
+}
+
+function toggleClass(className) {
+  const idx = selectedClasses.indexOf(className);
+  if (idx >= 0) {
+    selectedClasses.splice(idx, 1);
+  } else {
+    selectedClasses.push(className);
+  }
+  updateClassSelector();
+}
+
+function generateGoalId(scope, kind) {
+  const prefix = scope === 'global' ? 'g' : 'c';
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  return `${prefix}-custom-${timestamp}-${random}`;
+}
+
+function handleGoalSubmit() {
+  const title = document.getElementById('goalTitle').value.trim();
+  const titleError = document.getElementById('goalTitleError');
+
+  if (!title) {
+    titleError.textContent = 'Title is required';
+    titleError.style.display = 'block';
+    return;
+  }
+  if (title.length > 100) {
+    titleError.textContent = 'Title must be 100 characters or less';
+    titleError.style.display = 'block';
+    return;
+  }
+  titleError.style.display = 'none';
+
+  const desc = document.getElementById('goalDesc').value.trim();
+  const kind = document.getElementById('goalKind').value;
+  const tier = document.getElementById('goalTier').value;
+  const scope = document.getElementById('goalScope').value;
+  const category = document.getElementById('goalCategory').value.trim() || 'Custom';
+  const server = document.getElementById('goalServer').value;
+
+  const classes = scope === 'character'
+    ? (selectedClasses.length > 0 ? selectedClasses : 'all')
+    : 'all';
+
+  const id = generateGoalId(scope, kind);
+
+  const newGoal = {
+    id,
+    scope,
+    kind,
+    tier,
+    category,
+    title,
+    classes,
+    server
+  };
+
+  if (desc) newGoal.desc = desc;
+
+  state.customGoals.push(newGoal);
+  saveState();
+  closeGoalModal();
+  render();
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      scrollToGoal(id);
+    });
+  });
+}
+
 function saveAttempt() {
   if (!pendingLogGoalId) return;
   const goal = allGoals().find(g => g.id === pendingLogGoalId);
@@ -1655,7 +1842,7 @@ function addCustomGoal() {
   const scope = state.activeContext === 'global' ? 'global' : 'character';
   const char = getActiveCharacter();
   const classes = scope === 'character' && char ? [char.class] : 'all';
-  const id = 'custom-' + Date.now();
+  const id = generateGoalId(scope, kind);
   state.customGoals.push({ id, scope, kind, tier: activeTier, category: cat, title, desc, classes, server: 'any' });
   render();
 }
@@ -1858,6 +2045,21 @@ document.getElementById('charModal').addEventListener('click', e => {
 });
 document.getElementById('logModal').addEventListener('click', e => {
   if (e.target.id === 'logModal') closeLogModal();
+});
+document.getElementById('goalModal').addEventListener('click', e => {
+  if (e.target.id === 'goalModal') closeGoalModal();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('charModal').classList.contains('open')) {
+      closeCharacterManager();
+    } else if (document.getElementById('logModal').classList.contains('open')) {
+      closeLogModal();
+    } else if (document.getElementById('goalModal').classList.contains('open')) {
+      closeGoalModal();
+    }
+  }
 });
 
 loadState();
