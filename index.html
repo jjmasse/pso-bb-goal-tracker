@@ -280,6 +280,9 @@
   }
   .modal-field textarea { resize: vertical; min-height: 60px; }
   .modal-field .helper { font-size: 11px; color: var(--text-dim); margin-top: 4px; font-style: italic; }
+  .radio-group { display: flex; flex-direction: column; gap: 10px; }
+  .radio-option { display: flex !important; align-items: center; gap: 8px; cursor: pointer; text-transform: none !important; font-size: 14px !important; letter-spacing: normal !important; color: var(--text) !important; }
+  .radio-option input[type="radio"] { width: auto; margin: 0; cursor: pointer; }
   .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
   .class-grid {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px;
@@ -803,12 +806,12 @@
     </div>
     <div class="modal-field" id="charBindingField" style="display:none;">
       <label>Apply To</label>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+      <div class="radio-group">
+        <label class="radio-option">
           <input type="radio" name="charBinding" value="specific" checked onchange="updateClassSelector()">
           <span id="specificCharLabel">Only this character</span>
         </label>
-        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+        <label class="radio-option">
           <input type="radio" name="charBinding" value="class" onchange="updateClassSelector()">
           <span>All characters of selected class(es)</span>
         </label>
