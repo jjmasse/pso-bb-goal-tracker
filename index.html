@@ -1191,7 +1191,8 @@ function allGoals() { return [...GOALS_DATA, ...state.customGoals].map(withStrat
 
 function isFirstTimeUser() {
   return state.customGoals.length === 0 &&
-         (state.catalogSelections || []).length === 0;
+         (state.catalogSelections || []).length === 0 &&
+         Object.keys(state.achievements).length === 0;
 }
 
 function isPrereqDone(prereqId) {
