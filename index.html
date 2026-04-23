@@ -1270,19 +1270,36 @@ function saveState() {
 // HELPERS
 // ============================================================
 function getAllCategories() {
-  const categories = new Set();
-  // Add categories from catalog goals
+  const categoriesMap = new Map(); // Map of normalized name -> preferred display name
+
+  // Collect all categories
+  const allCategories = [];
   GOALS_DATA.forEach(g => {
-    if (g.category) categories.add(g.category);
+    if (g.category) allCategories.push(g.category);
   });
-  // Add categories from custom goals
   state.customGoals.forEach(g => {
-    if (g.category) categories.add(g.category);
+    if (g.category) allCategories.push(g.category);
+  });
+
+  // Group by normalized form (handle singular/plural)
+  allCategories.forEach(cat => {
+    const lower = cat.toLowerCase();
+    const normalized = lower.endsWith('s') ? lower : lower + 's'; // Normalize to plural
+
+    if (!categoriesMap.has(normalized)) {
+      categoriesMap.set(normalized, cat);
+    } else {
+      // If both singular and plural exist, prefer plural form
+      const existing = categoriesMap.get(normalized);
+      if (cat.endsWith('s') && !existing.endsWith('s')) {
+        categoriesMap.set(normalized, cat);
+      }
+    }
   });
 
   // Filter out categories that overlap with Kind names to avoid confusion
   const kindNames = KINDS.map(k => k.toLowerCase());
-  return Array.from(categories)
+  return Array.from(categoriesMap.values())
     .filter(cat => !kindNames.includes(cat.toLowerCase()))
     .sort();
 }
