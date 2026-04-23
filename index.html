@@ -797,14 +797,14 @@
     <div class="modal-field">
       <label>Scope</label>
       <select id="goalScope" onchange="updateClassSelector()">
-        <option value="global">Global (account-wide)</option>
-        <option value="character">Character (class-specific)</option>
+        <option value="global">Global (account-wide, all characters)</option>
+        <option value="character">Character (tracked per-character, filtered by class)</option>
       </select>
     </div>
     <div class="modal-field" id="classField" style="display:none;">
       <label>Classes</label>
       <div class="class-grid" id="classGrid"></div>
-      <div class="helper">Select which classes this goal applies to. Leave empty for all classes.</div>
+      <div class="helper">This goal will appear for all characters of the selected class(es). Leave empty for all classes.</div>
     </div>
     <div class="modal-field">
       <label>Category</label>
@@ -1704,7 +1704,17 @@ function openGoalModal() {
   document.getElementById('goalDesc').value = '';
   document.getElementById('goalKind').value = 'progression';
   document.getElementById('goalTier').value = 'core';
-  document.getElementById('goalScope').value = 'global';
+
+  // Default scope matches current context
+  const char = getActiveCharacter();
+  const defaultScope = char ? 'character' : 'global';
+  document.getElementById('goalScope').value = defaultScope;
+
+  // Pre-select current character's class if in character context
+  if (char) {
+    selectedClasses = [char.class];
+  }
+
   document.getElementById('goalCategory').value = '';
   document.getElementById('goalServer').value = 'any';
   document.getElementById('goalTitleError').style.display = 'none';
