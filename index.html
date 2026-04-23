@@ -1264,7 +1264,8 @@ let state = {
   achievements: {},
   customGoals: [],
   kindFilters: { ...DEFAULT_KIND_FILTERS },
-  seasonalShowPast: false
+  seasonalShowPast: false,
+  lastGoalServer: 'any' // Remember last selected server in goal creation modal
 };
 let activeTier = 'core';
 let pendingLogGoalId = null;
@@ -1282,7 +1283,8 @@ function loadState() {
         achievements: p.achievements || {},
         customGoals: p.customGoals || [],
         kindFilters: p.kindFilters || { ...DEFAULT_KIND_FILTERS },
-        seasonalShowPast: p.seasonalShowPast || false
+        seasonalShowPast: p.seasonalShowPast || false,
+        lastGoalServer: p.lastGoalServer || 'any'
       };
       // Migration: remove obsolete 'social' kind filter from v3 saves
       if (state.kindFilters.social !== undefined) {
@@ -1835,7 +1837,8 @@ function openGoalModal() {
   categorySelect.innerHTML += '<option value="__new__">+ Create new category...</option>';
   document.getElementById('newCategoryField').style.display = 'none';
 
-  document.getElementById('goalServer').value = 'any';
+  // Default to last selected server
+  document.getElementById('goalServer').value = state.lastGoalServer || 'any';
   document.getElementById('goalTitleError').style.display = 'none';
   updateClassSelector();
   document.getElementById('goalModal').classList.add('open');
@@ -1977,6 +1980,10 @@ function handleGoalSubmit() {
   if (desc) newGoal.desc = desc;
 
   state.customGoals.push(newGoal);
+
+  // Remember this server selection for next time
+  state.lastGoalServer = server;
+
   saveState();
   closeGoalModal();
   setTier(tier);
