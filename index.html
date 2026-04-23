@@ -801,6 +801,19 @@
         <option value="character">Character (tracked per-character, filtered by class)</option>
       </select>
     </div>
+    <div class="modal-field" id="charBindingField" style="display:none;">
+      <label>Apply To</label>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+          <input type="radio" name="charBinding" value="specific" checked onchange="updateClassSelector()">
+          <span id="specificCharLabel">Only this character</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+          <input type="radio" name="charBinding" value="class" onchange="updateClassSelector()">
+          <span>All characters of selected class(es)</span>
+        </label>
+      </div>
+    </div>
     <div class="modal-field" id="classField" style="display:none;">
       <label>Classes</label>
       <div class="class-grid" id="classGrid"></div>
@@ -1311,7 +1324,15 @@ function goalsInScope() {
     if (g.scope !== wantScope) return false;
     if (!serverApplies(g)) return false;
     if (!kindApplies(g)) return false;
-    if (char && !classApplies(g, char.class)) return false;
+
+    // Character-specific filtering
+    if (char && g.scope === 'character') {
+      // If goal is bound to a specific character, only show for that character
+      if (g.characterId && g.characterId !== char.id) return false;
+      // Otherwise use class-based filtering
+      if (!g.characterId && !classApplies(g, char.class)) return false;
+    }
+
     if (g.kind === 'seasonal' && !state.seasonalShowPast && seasonalStatus(g) === 'past') return false;
     return true;
   });
@@ -1532,7 +1553,14 @@ function renderGoal(g) {
   const tags = [];
   tags.push(`<span class="kind-${kind}">${KIND_LABELS[kind]}</span>`);
   if (g.server && g.server !== 'any') tags.push(`<span>${g.server}</span>`);
-  if (Array.isArray(g.classes) && g.classes.length < 12) tags.push(`<span>${g.classes.length} class${g.classes.length === 1 ? '' : 'es'}</span>`);
+  if (g.characterId) {
+    // Character-specific goal
+    const char = state.characters.find(c => c.id === g.characterId);
+    if (char) tags.push(`<span>🎯 ${char.name} only</span>`);
+  } else if (Array.isArray(g.classes) && g.classes.length < 12) {
+    // Class-based goal
+    tags.push(`<span>${g.classes.length} class${g.classes.length === 1 ? '' : 'es'}</span>`);
+  }
   if (g.eventDates?.label) tags.push(`<span>${escapeHtml(g.eventDates.label)}</span>`);
   if (season === 'active') tags.push(`<span class="status-active">ACTIVE NOW</span>`);
   else if (season === 'upcoming') tags.push(`<span class="status-upcoming">upcoming</span>`);
@@ -1710,9 +1738,11 @@ function openGoalModal() {
   const defaultScope = char ? 'character' : 'global';
   document.getElementById('goalScope').value = defaultScope;
 
-  // Pre-select current character's class if in character context
+  // Set character-specific label and pre-select binding mode
   if (char) {
-    selectedClasses = [char.class];
+    document.getElementById('specificCharLabel').textContent = `Only ${char.name}`;
+    document.querySelector('input[name="charBinding"][value="specific"]').checked = true;
+    selectedClasses = [char.class]; // Pre-select for class mode
   }
 
   document.getElementById('goalCategory').value = '';
@@ -1729,16 +1759,31 @@ function closeGoalModal() {
 
 function updateClassSelector() {
   const scope = document.getElementById('goalScope').value;
+  const charBindingField = document.getElementById('charBindingField');
   const classField = document.getElementById('classField');
   const classGrid = document.getElementById('classGrid');
 
   if (scope === 'character') {
-    classField.style.display = 'block';
-    classGrid.innerHTML = CLASSES.map(cls => {
-      const isSelected = selectedClasses.includes(cls);
-      return `<div class="class-chip ${isSelected ? 'selected' : ''}" onclick="toggleClass('${cls}')">${cls}</div>`;
-    }).join('');
+    // Show character binding options
+    charBindingField.style.display = 'block';
+
+    // Check which binding mode is selected
+    const bindingMode = document.querySelector('input[name="charBinding"]:checked')?.value || 'specific';
+
+    if (bindingMode === 'class') {
+      // Show class selector for class-based goals
+      classField.style.display = 'block';
+      classGrid.innerHTML = CLASSES.map(cls => {
+        const isSelected = selectedClasses.includes(cls);
+        return `<div class="class-chip ${isSelected ? 'selected' : ''}" onclick="toggleClass('${cls}')">${cls}</div>`;
+      }).join('');
+    } else {
+      // Hide class selector for character-specific goals
+      classField.style.display = 'none';
+    }
   } else {
+    // Hide both for global scope
+    charBindingField.style.display = 'none';
     classField.style.display = 'none';
     selectedClasses = [];
   }
@@ -1784,9 +1829,24 @@ function handleGoalSubmit() {
   const category = document.getElementById('goalCategory').value.trim() || 'Custom';
   const server = document.getElementById('goalServer').value;
 
-  const classes = scope === 'character'
-    ? (selectedClasses.length > 0 ? selectedClasses : 'all')
-    : 'all';
+  // Determine character binding mode for character-scoped goals
+  let characterId = null;
+  let classes = 'all';
+
+  if (scope === 'character') {
+    const bindingMode = document.querySelector('input[name="charBinding"]:checked')?.value;
+    if (bindingMode === 'specific') {
+      // Character-specific: store character ID
+      const char = getActiveCharacter();
+      if (char) {
+        characterId = char.id;
+        classes = [char.class]; // Store class for filtering purposes
+      }
+    } else {
+      // Class-based: use selected classes
+      classes = selectedClasses.length > 0 ? selectedClasses : 'all';
+    }
+  }
 
   const id = generateGoalId(scope, kind);
 
@@ -1801,6 +1861,7 @@ function handleGoalSubmit() {
     server
   };
 
+  if (characterId) newGoal.characterId = characterId;
   if (desc) newGoal.desc = desc;
 
   state.customGoals.push(newGoal);
