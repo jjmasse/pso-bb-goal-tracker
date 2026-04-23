@@ -2,6 +2,13 @@
 psobb-journey-*.json
 *.bak
 
+# Development workflow (Claude Code agents, skills, personal knowledge base)
+.claude/
+PSO BB/
+docs/
+CLAUDE.md
+REQUIREMENTS.md
+
 # Editor
 .vscode/
 .idea/
