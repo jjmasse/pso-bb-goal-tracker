@@ -295,6 +295,12 @@
   }
   .class-chip:hover { border-color: var(--accent); color: var(--text); }
   .class-chip.selected { border-color: var(--accent); color: var(--accent); background: var(--bg-2); }
+  .class-family-btn {
+    padding: 6px 12px; font-size: 11px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--bg-0); color: var(--text-dim);
+    cursor: pointer; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .class-family-btn:hover { border-color: var(--accent); color: var(--text); }
   .field-error { font-size: 11px; color: var(--danger); margin-top: 4px; }
   .char-list { margin: 0; padding: 0; list-style: none; }
   .char-list li {
@@ -820,6 +826,13 @@
     </div>
     <div class="modal-field" id="classField" style="display:none;">
       <label>Classes</label>
+      <div class="class-family-select" style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+        <button type="button" class="class-family-btn" onclick="selectClassFamily('HUNTERS')">All Hunters</button>
+        <button type="button" class="class-family-btn" onclick="selectClassFamily('RANGERS')">All Rangers</button>
+        <button type="button" class="class-family-btn" onclick="selectClassFamily('FORCES')">All Forces</button>
+        <button type="button" class="class-family-btn" onclick="selectClassFamily('ALL')">All Classes</button>
+        <button type="button" class="class-family-btn" onclick="clearAllClasses()">Clear All</button>
+      </div>
       <div class="class-grid" id="classGrid"></div>
       <div class="helper">This goal will appear for all characters of the selected class(es). Leave empty for all classes.</div>
     </div>
@@ -1891,6 +1904,33 @@ function updateCategoryInput() {
   } else {
     newCategoryField.style.display = 'none';
   }
+}
+
+function selectClassFamily(family) {
+  // Map family names to class arrays
+  const familyMap = {
+    'HUNTERS': HUNTERS,
+    'RANGERS': RANGERS,
+    'FORCES': FORCES,
+    'ALL': CLASSES
+  };
+
+  const classesToSelect = familyMap[family] || [];
+
+  // Add all classes from the family to selectedClasses (avoiding duplicates)
+  classesToSelect.forEach(cls => {
+    if (!selectedClasses.includes(cls)) {
+      selectedClasses.push(cls);
+    }
+  });
+
+  // Re-render the class grid to show updated selections
+  updateClassSelector();
+}
+
+function clearAllClasses() {
+  selectedClasses = [];
+  updateClassSelector();
 }
 
 function toggleClass(className) {
