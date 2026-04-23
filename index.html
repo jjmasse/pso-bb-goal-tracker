@@ -821,7 +821,13 @@
     </div>
     <div class="modal-field">
       <label>Category</label>
-      <input type="text" id="goalCategory" placeholder="e.g. Hunts, Progression, etc.">
+      <select id="goalCategorySelect" onchange="updateCategoryInput()">
+        <option value="">-- Select Category --</option>
+      </select>
+    </div>
+    <div class="modal-field" id="newCategoryField" style="display:none;">
+      <label>New Category Name</label>
+      <input type="text" id="goalCategoryNew" placeholder="e.g. Hunts, Progression, etc.">
     </div>
     <div class="modal-field">
       <label>Server</label>
@@ -1260,6 +1266,19 @@ function saveState() {
 // ============================================================
 // HELPERS
 // ============================================================
+function getAllCategories() {
+  const categories = new Set();
+  // Add categories from catalog goals
+  GOALS_DATA.forEach(g => {
+    if (g.category) categories.add(g.category);
+  });
+  // Add categories from custom goals
+  state.customGoals.forEach(g => {
+    if (g.category) categories.add(g.category);
+  });
+  return Array.from(categories).sort();
+}
+
 function getActiveCharacter() {
   if (state.activeContext === 'global') return null;
   return state.characters.find(c => c.id === state.activeContext) || null;
@@ -1745,7 +1764,16 @@ function openGoalModal() {
     selectedClasses = [char.class]; // Pre-select for class mode
   }
 
-  document.getElementById('goalCategory').value = '';
+  // Populate category dropdown
+  const categorySelect = document.getElementById('goalCategorySelect');
+  const categories = getAllCategories();
+  categorySelect.innerHTML = '<option value="">-- Select Category --</option>';
+  categories.forEach(cat => {
+    categorySelect.innerHTML += `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`;
+  });
+  categorySelect.innerHTML += '<option value="__new__">+ Create new category...</option>';
+  document.getElementById('newCategoryField').style.display = 'none';
+
   document.getElementById('goalServer').value = 'any';
   document.getElementById('goalTitleError').style.display = 'none';
   updateClassSelector();
@@ -1789,6 +1817,18 @@ function updateClassSelector() {
   }
 }
 
+function updateCategoryInput() {
+  const categorySelect = document.getElementById('goalCategorySelect');
+  const newCategoryField = document.getElementById('newCategoryField');
+
+  if (categorySelect.value === '__new__') {
+    newCategoryField.style.display = 'block';
+    document.getElementById('goalCategoryNew').focus();
+  } else {
+    newCategoryField.style.display = 'none';
+  }
+}
+
 function toggleClass(className) {
   const idx = selectedClasses.indexOf(className);
   if (idx >= 0) {
@@ -1826,7 +1866,18 @@ function handleGoalSubmit() {
   const kind = document.getElementById('goalKind').value;
   const tier = document.getElementById('goalTier').value;
   const scope = document.getElementById('goalScope').value;
-  const category = document.getElementById('goalCategory').value.trim() || 'Custom';
+
+  // Get category from dropdown or new category input
+  const categorySelect = document.getElementById('goalCategorySelect').value;
+  let category = 'Custom';
+  if (categorySelect === '__new__') {
+    // User is creating a new category
+    category = document.getElementById('goalCategoryNew').value.trim() || 'Custom';
+  } else if (categorySelect) {
+    // User selected an existing category
+    category = categorySelect;
+  }
+
   const server = document.getElementById('goalServer').value;
 
   // Determine character binding mode for character-scoped goals
