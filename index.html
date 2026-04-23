@@ -2042,6 +2042,7 @@ function deleteCustom(id) {
   for (const key of Object.keys(state.achievements)) {
     if (key === id || key.startsWith(id + '::')) delete state.achievements[key];
   }
+  saveState();
   render();
 }
 
