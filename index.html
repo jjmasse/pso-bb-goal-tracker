@@ -603,6 +603,62 @@
       }
     }
   }
+
+  /* Empty State (First-Time User) */
+  .empty-state-firsttime {
+    max-width: 600px;
+    margin: 80px auto;
+    text-align: center;
+    padding: 48px 32px;
+  }
+  .empty-state-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+  .empty-state-firsttime h2 {
+    font-size: 28px;
+    margin-bottom: 12px;
+    background: linear-gradient(90deg, var(--accent), var(--legendary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .empty-state-firsttime p {
+    color: var(--text-dim);
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+  .empty-state-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .empty-state-firsttime button {
+    white-space: nowrap;
+  }
+
+  /* Mobile responsiveness for empty state */
+  @media (max-width: 480px) {
+    .empty-state-firsttime {
+      margin: 40px auto;
+      padding: 32px 16px;
+    }
+    .empty-state-firsttime h2 {
+      font-size: 24px;
+    }
+    .empty-state-firsttime p {
+      font-size: 14px;
+    }
+    .empty-state-actions {
+      flex-direction: column;
+    }
+    .empty-state-actions button {
+      width: 100%;
+    }
+  }
 </style>
 </head>
 <body>
@@ -1133,6 +1189,11 @@ function kindApplies(goal) {
 }
 function allGoals() { return [...GOALS_DATA, ...state.customGoals].map(withStrategy); }
 
+function isFirstTimeUser() {
+  return state.customGoals.length === 0 &&
+         (state.catalogSelections || []).length === 0;
+}
+
 function isPrereqDone(prereqId) {
   const g = allGoals().find(x => x.id === prereqId);
   if (!g) return false;
@@ -1336,6 +1397,25 @@ function setTier(tier) { activeTier = tier; render(); }
 
 function renderTier() {
   const container = document.getElementById('tierContent');
+  
+  // First-time user empty state
+  if (isFirstTimeUser()) {
+    container.innerHTML = `<div class="empty-state-firsttime">
+      <div class="empty-state-icon">✨</div>
+      <h2>Track Your PSO BB Journey Your Way</h2>
+      <p>Create custom goals for the items you're hunting, techniques you're learning, or milestones you're chasing.</p>
+      <div class="empty-state-actions">
+        <button class="primary" onclick="alert('Goal creation modal coming soon in REQ-044!')">
+          + Create Your First Goal
+        </button>
+        <button onclick="alert('Achievement Catalog coming soon in REQ-040!')">
+          Or browse the Achievement Catalog
+        </button>
+      </div>
+    </div>`;
+    return;
+  }
+  
   if (state.activeContext !== 'global' && !getActiveCharacter()) {
     container.innerHTML = `<div class="empty-state">
       <h3>No character selected</h3>
