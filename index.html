@@ -272,6 +272,7 @@
     padding: 24px; max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto;
   }
   .modal h2 { margin: 0 0 16px; font-size: 18px; }
+  .welcome-modal { max-width: 480px; }
   .modal-field { margin-bottom: 14px; }
   .modal-field label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 6px; }
   .modal-field input, .modal-field select, .modal-field textarea {
@@ -845,6 +846,35 @@
       <button type="button" onclick="closeGoalModal()">Cancel</button>
       <button type="button" class="primary" onclick="handleGoalSubmit()">Create Goal</button>
     </div>
+  </div>
+</div>
+
+<!-- Welcome Modal (First-time onboarding) -->
+<div class="modal-backdrop" id="welcomeModal" style="display:none;">
+  <div class="modal welcome-modal">
+    <div style="text-align:center; margin-bottom:24px;">
+      <div style="font-size:48px; margin-bottom:12px;">🎮</div>
+      <h2 style="font-size:24px; margin:0 0 8px;">Welcome to PSO BB Journey Log</h2>
+      <p style="color:var(--text-dim); margin:0;">Track your achievements, goals, and progress across all your characters</p>
+    </div>
+
+    <div style="background:var(--bg-0); border:1px solid var(--line); border-radius:8px; padding:20px; margin-bottom:20px;">
+      <h3 style="font-size:16px; margin:0 0 12px; color:var(--text);">Get Started</h3>
+      <p style="font-size:14px; color:var(--text-dim); margin:0 0 16px; line-height:1.6;">
+        Create your first character to start tracking character-specific goals like hunts, techniques, and equipment.
+        Or skip this step to track account-wide goals only.
+      </p>
+      <button class="primary" style="width:100%; margin-bottom:10px;" onclick="startWithCharacter()">
+        + Create Your First Character
+      </button>
+      <button style="width:100%;" onclick="closeWelcomeModal()">
+        Skip, I'll track global goals only
+      </button>
+    </div>
+
+    <p style="font-size:12px; color:var(--text-dim); text-align:center; margin:0;">
+      You can always add characters later from the top-right menu
+    </p>
   </div>
 </div>
 
@@ -2008,6 +2038,29 @@ function deleteCustom(id) {
   render();
 }
 
+// ========= Welcome Modal (First-time onboarding) =========
+function showWelcomeModal() {
+  const modal = document.getElementById('welcomeModal');
+  modal.style.display = 'flex';
+}
+
+function closeWelcomeModal() {
+  const modal = document.getElementById('welcomeModal');
+  modal.style.display = 'none';
+}
+
+function startWithCharacter() {
+  closeWelcomeModal();
+  openCharacterManager();
+}
+
+function shouldShowWelcome() {
+  // Show welcome modal if truly fresh: no characters, no custom goals, no achievements
+  return state.characters.length === 0 &&
+         state.customGoals.length === 0 &&
+         Object.keys(state.achievements).length === 0;
+}
+
 // ========= Character management =========
 function openCharacterManager() {
   const modal = document.getElementById('charModal');
@@ -2202,10 +2255,16 @@ document.getElementById('logModal').addEventListener('click', e => {
 document.getElementById('goalModal').addEventListener('click', e => {
   if (e.target.id === 'goalModal') closeGoalModal();
 });
+document.getElementById('welcomeModal').addEventListener('click', e => {
+  if (e.target.id === 'welcomeModal') closeWelcomeModal();
+});
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    if (document.getElementById('charModal').classList.contains('open')) {
+    const welcomeModal = document.getElementById('welcomeModal');
+    if (welcomeModal && welcomeModal.style.display === 'flex') {
+      closeWelcomeModal();
+    } else if (document.getElementById('charModal').classList.contains('open')) {
       closeCharacterManager();
     } else if (document.getElementById('logModal').classList.contains('open')) {
       closeLogModal();
@@ -2217,6 +2276,11 @@ document.addEventListener('keydown', e => {
 
 loadState();
 render();
+
+// Show welcome modal for first-time users
+if (shouldShowWelcome()) {
+  showWelcomeModal();
+}
 </script>
 </body>
 </html>
